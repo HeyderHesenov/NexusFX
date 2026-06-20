@@ -1,10 +1,12 @@
 "use client";
 
-/**
- * Ambient market ticker — terminal imzası.
- * Hələlik nümunə simvollar; real qiymətlər analitika addımında qoşulacaq.
- */
-const QUOTES = [
+import { useEffect, useState } from "react";
+import { apiGet } from "@/lib/api";
+
+type Quote = { sym: string; val: string; chg: string; up: boolean };
+
+// Backend əlçatmaz olarsa göstəriləcək fallback (canlı data gələnə qədər).
+const FALLBACK: Quote[] = [
   { sym: "EUR/USD", val: "1.0842", chg: "+0.18%", up: true },
   { sym: "BTC/USD", val: "67,420", chg: "+2.41%", up: true },
   { sym: "DXY", val: "104.32", chg: "-0.22%", up: false },
@@ -13,14 +15,14 @@ const QUOTES = [
   { sym: "ETH/USD", val: "3,512", chg: "-1.05%", up: false },
   { sym: "GBP/USD", val: "1.2710", chg: "+0.09%", up: true },
   { sym: "GOLD", val: "2,318", chg: "-0.31%", up: false },
-  { sym: "USD/JPY", val: "157.84", chg: "+0.27%", up: true },
-  { sym: "WTI OIL", val: "78.45", chg: "-0.62%", up: false },
 ];
 
-function Row() {
+const REFRESH_MS = 60_000;
+
+function Row({ quotes }: { quotes: Quote[] }) {
   return (
     <div className="flex shrink-0 items-center">
-      {QUOTES.map((q) => (
+      {quotes.map((q) => (
         <span
           key={q.sym}
           className="flex items-center gap-2 whitespace-nowrap px-5 text-xs"
@@ -36,14 +38,34 @@ function Row() {
   );
 }
 
+/** Canlı bazar lenti. Real qiymətləri backend-dən çəkir (60s-də yenilənir). */
 export function Ticker({ compact = false }: { compact?: boolean }) {
+  const [quotes, setQuotes] = useState<Quote[]>(FALLBACK);
+
+  useEffect(() => {
+    let alive = true;
+    const fetchQuotes = async () => {
+      try {
+        const data = await apiGet<Quote[]>("/market/ticker");
+        if (alive && data.length) setQuotes(data);
+      } catch {
+        /* fallback qalır */
+      }
+    };
+    fetchQuotes();
+    const id = setInterval(fetchQuotes, REFRESH_MS);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
+
   if (compact) {
-    // Kompakt lent — pill formasında, mərkəzdə (intro üçün).
     return (
       <div className="relative w-full overflow-hidden rounded-full border border-border bg-surface/80 py-2 backdrop-blur">
         <div className="ticker-track flex w-max">
-          <Row />
-          <Row />
+          <Row quotes={quotes} />
+          <Row quotes={quotes} />
         </div>
         <div className="pointer-events-none absolute inset-y-0 left-0 w-10 rounded-l-full bg-gradient-to-r from-surface to-transparent" />
         <div className="pointer-events-none absolute inset-y-0 right-0 w-10 rounded-r-full bg-gradient-to-l from-surface to-transparent" />
@@ -54,10 +76,9 @@ export function Ticker({ compact = false }: { compact?: boolean }) {
   return (
     <div className="relative overflow-hidden border-y border-border bg-surface/60">
       <div className="ticker-track flex w-max">
-        <Row />
-        <Row />
+        <Row quotes={quotes} />
+        <Row quotes={quotes} />
       </div>
-      {/* kənar yumşalma */}
       <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-bg to-transparent" />
       <div className="pointer-events-none absolute inset-y-0 right-0 w-16 bg-gradient-to-l from-bg to-transparent" />
     </div>

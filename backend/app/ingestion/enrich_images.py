@@ -1,0 +1,92 @@
+"""og:image backfill — şəkli olmayan xəbərlər üçün məqalə səhifəsindən şəkil çəkir.
+
+Naşirin `og:image`/`twitter:image` meta teqi — paylaşım üçün təqdim etdiyi şəkil.
+İstifadə (backend/ qovluğundan):
+    python -m app.ingestion.enrich_images
+"""
+from __future__ import annotations
+
+import asyncio
+import re
+
+import httpx
+from sqlalchemy import select
+
+from app.db.session import AsyncSessionLocal, engine
+from app.models import News
+
+_UA = {"User-Agent": "Mozilla/5.0 (NexusIQ news aggregator)"}
+_CONCURRENCY = 8
+
+_OG = re.compile(
+    r'<meta[^>]+(?:property|name)=["\'](?:og:image|twitter:image)["\'][^>]*'
+    r'content=["\']([^"\']+)["\']',
+    re.IGNORECASE,
+)
+_OG_REV = re.compile(
+    r'<meta[^>]+content=["\']([^"\']+)["\'][^>]*'
+    r'(?:property|name)=["\'](?:og:image|twitter:image)["\']',
+    re.IGNORECASE,
+)
+
+
+def _extract(html: str) -> str | None:
+    m = _OG.search(html) or _OG_REV.search(html)
+    if not m:
+        return None
+    url = m.group(1).strip()
+    return url if url.startswith("http") else None
+
+
+async def _fetch(sem, client, row_id, url):
+    async with sem:
+        try:
+            r = await client.get(url, timeout=15.0)
+            r.raise_for_status()
+            return row_id, _extract(r.text[:200_000])
+        except (httpx.HTTPError, httpx.TimeoutException):
+            return row_id, None
+
+
+async def backfill(limit: int = 200) -> dict[str, int]:
+    async with AsyncSessionLocal() as session:
+        rows = (
+            await session.scalars(
+                select(News)
+                .where(News.image_url.is_(None))
+                .order_by(News.published_at.desc().nullslast())
+                .limit(limit)
+            )
+        ).all()
+        targets = [(n.id, n.url) for n in rows]
+
+    if not targets:
+        return {"checked": 0, "found": 0}
+
+    sem = asyncio.Semaphore(_CONCURRENCY)
+    async with httpx.AsyncClient(headers=_UA, follow_redirects=True) as client:
+        results = await asyncio.gather(
+            *(_fetch(sem, client, rid, url) for rid, url in targets)
+        )
+
+    found = 0
+    async with AsyncSessionLocal() as session:
+        for row_id, img in results:
+            if not img:
+                continue
+            news = await session.get(News, row_id)
+            if news:
+                news.image_url = img[:1000]
+                found += 1
+        await session.commit()
+    return {"checked": len(targets), "found": found}
+
+
+async def main() -> None:
+    stats = await backfill()
+    print(f"✅ Şəkil backfill — yoxlanan: {stats['checked']}, tapılan: {stats['found']}")
+    await engine.dispose()
+
+
+if __name__ == "__main__":
+    asyncio.run(main())

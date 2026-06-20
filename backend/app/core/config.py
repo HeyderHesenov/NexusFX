@@ -16,14 +16,14 @@ class Settings(BaseSettings):
     )
 
     # ---- App ----
-    app_name: str = "NexusFX"
+    app_name: str = "NexusIQ"
     environment: str = "development"
     api_v1_prefix: str = "/api/v1"
     backend_cors_origins: str = "http://localhost:3000"
 
     # ---- Database ----
     database_url: str = (
-        "postgresql+asyncpg://postgres:postgres@localhost:5432/nexusfx"
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/nexusiq"
     )
 
     # ---- AI ----
@@ -38,7 +38,7 @@ class Settings(BaseSettings):
 
     # ---- Ingestion ----
     ingest_interval_minutes: int = 60
-    ingest_user_agent: str = "NexusFX/1.0 (+local)"
+    ingest_user_agent: str = "NexusIQ/1.0 (+local)"
 
     # ---- Analytics ----
     correlation_default_window_days: int = 90

@@ -1,4 +1,4 @@
-"""NexusFX FastAPI giriş nöqtəsi."""
+"""NexusIQ FastAPI giriş nöqtəsi."""
 from __future__ import annotations
 
 from contextlib import asynccontextmanager

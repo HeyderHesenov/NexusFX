@@ -34,4 +34,97 @@ export async function apiPost<T>(
   return res.json() as Promise<T>;
 }
 
+/**
+ * NexusIQ xəbərlərini başlıq/məzmun üzrə axtarır.
+ * Backend `GET /news/search?q=` (Addım 6-da tam qoşulur).
+ * Endpoint hazır olmasa boş siyahı qaytarır — UI sınmır.
+ */
+export async function searchNews(q: string): Promise<import("@/types").NewsItem[]> {
+  const query = q.trim();
+  if (!query) return [];
+  try {
+    return await apiGet(`/news/search?q=${encodeURIComponent(query)}`);
+  } catch {
+    return [];
+  }
+}
+
+/** Bir xəbər üçün AI bazar proqnozu (lazy — açılışdan sonra çağırılır). */
+export async function getForecast(
+  id: string,
+  lang: string,
+): Promise<import("@/types").Forecast> {
+  try {
+    return await apiGet(`/news/${id}/forecast?lang=${lang}`);
+  } catch {
+    return { ready: false };
+  }
+}
+
+/** Crypto Fear & Greed indeksi. */
+export async function getFearGreed(): Promise<import("@/types").FearGreed | null> {
+  try {
+    return await apiGet(`/market/feargreed`);
+  } catch {
+    return null;
+  }
+}
+
+/** Bu həftənin iqtisadi təqvimi (ForexFactory). */
+export async function getCalendar(): Promise<import("@/types").CalEvent[]> {
+  try {
+    return await apiGet(`/market/calendar`);
+  } catch {
+    return [];
+  }
+}
+
+/** Crypto təqvimi — sektor etiketli token unlock-ları (major/rwa/ai). */
+export async function getCryptoCalendar(): Promise<
+  import("@/types").CryptoUnlock[]
+> {
+  try {
+    return await apiGet(`/market/crypto-calendar`);
+  } catch {
+    return [];
+  }
+}
+
+/** US səhm gəlir hesabatları (hər biri `ai` etiketi ilə). */
+export async function getEarnings(): Promise<import("@/types").Earning[]> {
+  try {
+    return await apiGet(`/market/earnings`);
+  } catch {
+    return [];
+  }
+}
+
+/** Metal qiymətləri (Gold/Silver/Platinum/Palladium/Copper) + 14g trend. */
+export async function getMetals(): Promise<import("@/types").Quote[]> {
+  try {
+    return await apiGet(`/market/metals`);
+  } catch {
+    return [];
+  }
+}
+
+/** Lider coinlər təqvimi — BTC halving, XRP escrow, BNB burn, unlock-lar. */
+export async function getMajorsCalendar(): Promise<
+  import("@/types").MajorEvent[]
+> {
+  try {
+    return await apiGet(`/market/majors-calendar`);
+  } catch {
+    return [];
+  }
+}
+
+/** AI Asistanta sual göndərir (arxa fonda ikili AI debate). */
+export async function sendChat(
+  message: string,
+  lang: string,
+): Promise<{ answer: string; refused: boolean }> {
+  return apiPost("/chat", { message, lang });
+}
+
 export { API_BASE };

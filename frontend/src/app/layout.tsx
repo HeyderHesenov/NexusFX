@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import "@/styles/globals.css";
 import { AuthGate } from "@/components/auth/AuthGate";
@@ -17,8 +17,14 @@ const jetbrains = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "NexusFX — Financial Intelligence",
+  title: "NexusIQ — Financial Intelligence",
   description: "AI-driven financial news, analysis and correlation terminal.",
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#0a0a0b",
 };
 
 export default function RootLayout({

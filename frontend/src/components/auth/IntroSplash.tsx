@@ -98,8 +98,8 @@ export function IntroSplash({ onEnter }: { onEnter: () => void }) {
       {/* alt qaraltma — wordmark oxunaqlı qalsın */}
       <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-transparent via-bg/40 to-bg/80" />
 
-      {/* market lenti — yuxarıda, geniş, bütün pairlər axır */}
-      <div className="absolute inset-x-0 top-6 z-10 flex justify-center px-4">
+      {/* market lenti — yuxarıda; dar ekranda dil düyməsi ilə toqquşmasın deyə aşağı düşür */}
+      <div className="absolute inset-x-0 top-[68px] z-10 flex justify-center px-4 lg:top-6">
         <div className="w-full max-w-3xl fade-up">
           <Ticker compact />
         </div>
@@ -109,7 +109,7 @@ export function IntroSplash({ onEnter }: { onEnter: () => void }) {
       <div className="mb-enter relative z-10 flex w-full flex-col items-center text-center">
         {/* wordmark */}
         <h1 className="text-7xl font-semibold tracking-tight sm:text-8xl">
-          Nexus<span className="text-accent">FX</span>
+          Nexus<span className="text-accent">IQ</span>
         </h1>
 
         {/* narıncı alt xətt */}

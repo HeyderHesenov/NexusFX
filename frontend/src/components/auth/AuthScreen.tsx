@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Mail, Lock, User } from "lucide-react";
 import { Ticker } from "@/components/market/Ticker";
 import { useI18n } from "@/lib/i18n";
 import {
@@ -8,6 +9,8 @@ import {
   googleConfigured,
   type GoogleUser,
 } from "@/lib/google";
+
+type Mode = "login" | "signup";
 
 /** Rəsmi Google "G" loqosu. */
 function GoogleIcon() {
@@ -33,6 +36,8 @@ function GoogleIcon() {
   );
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function AuthScreen({
   onAuthed,
   authKey,
@@ -41,8 +46,42 @@ export function AuthScreen({
   authKey: string;
 }) {
   const { t } = useI18n();
+  const [mode, setMode] = useState<Mode>("login");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  function persist(user: GoogleUser) {
+    localStorage.setItem(authKey, JSON.stringify(user));
+    onAuthed();
+  }
+
+  /** E-poçt/parol ilə daxil olma — hələlik demo (real auth backend addımında). */
+  async function handleEmail(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+
+    if (mode === "signup" && !name.trim()) {
+      setError(t("auth.nameRequired"));
+      return;
+    }
+    if (!EMAIL_RE.test(email)) {
+      setError(t("auth.invalidEmail"));
+      return;
+    }
+    if (password.length < 6) {
+      setError(t("auth.shortPassword"));
+      return;
+    }
+
+    setBusy(true);
+    await new Promise((r) => setTimeout(r, 400));
+    const displayName =
+      mode === "signup" ? name.trim() : email.split("@")[0];
+    persist({ name: displayName, email });
+  }
 
   async function handleGoogle() {
     setError(null);
@@ -52,12 +91,10 @@ export function AuthScreen({
       if (googleConfigured()) {
         user = await signInWithGoogle();
       } else {
-        // Demo rejimi — Client ID əlavə olunanda real Gmail işləyəcək.
         await new Promise((r) => setTimeout(r, 500));
-        user = { name: "Demo İstifadəçi", email: "demo@nexusfx.az" };
+        user = { name: "Demo İstifadəçi", email: "demo@nexusiq.az" };
       }
-      localStorage.setItem(authKey, JSON.stringify(user));
-      onAuthed();
+      persist(user);
     } catch {
       setError(t("auth.error"));
       setBusy(false);
@@ -69,45 +106,115 @@ export function AuthScreen({
       {/* ambient parıltı */}
       <div className="pointer-events-none absolute top-1/4 h-96 w-96 rounded-full bg-accent/10 blur-[130px]" />
 
-      <div className="relative w-full max-w-sm text-center fade-up">
-        <div className="mb-8 flex items-center justify-center gap-2.5">
+      <div className="relative w-full max-w-sm fade-up">
+        <div className="mb-7 flex items-center justify-center gap-2.5">
           <span className="pulse-dot h-2.5 w-2.5 rounded-full bg-accent" />
           <span className="text-lg font-semibold tracking-tight">
-            Nexus<span className="text-accent">FX</span>
+            Nexus<span className="text-accent">IQ</span>
           </span>
         </div>
 
-        <h2 className="text-2xl font-semibold tracking-tight">
-          {t("auth.welcome")}
-        </h2>
-        <p className="mt-2 text-sm text-muted">{t("auth.subtitle")}</p>
+        {/* rejim keçidi */}
+        <div className="mx-auto mb-6 flex w-full max-w-[260px] rounded-xl border border-border bg-surface p-1">
+          {(["login", "signup"] as Mode[]).map((m) => (
+            <button
+              key={m}
+              onClick={() => {
+                setMode(m);
+                setError(null);
+              }}
+              className={`flex-1 rounded-lg py-2 text-sm font-medium transition-all duration-200 ${
+                mode === m
+                  ? "bg-accent text-black"
+                  : "text-muted hover:text-text"
+              }`}
+            >
+              {m === "login" ? t("auth.tabLogin") : t("auth.tabSignup")}
+            </button>
+          ))}
+        </div>
 
-        <button
-          onClick={handleGoogle}
-          disabled={busy}
-          className="group mt-7 flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-white py-3.5 text-sm font-semibold text-[#1f1f22] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-8px_rgba(255,255,255,0.25)] active:translate-y-0 disabled:opacity-60"
-        >
-          {busy ? (
-            <span className="text-muted">{t("auth.loading")}</span>
-          ) : (
-            <>
-              <GoogleIcon />
-              {t("auth.google")}
-            </>
+        <h2 className="text-center text-2xl font-semibold tracking-tight">
+          {mode === "login" ? t("auth.welcome") : t("auth.createTitle")}
+        </h2>
+        <p className="mt-2 text-center text-sm text-muted">
+          {mode === "login" ? t("auth.subtitle") : t("auth.createSubtitle")}
+        </p>
+
+        {/* e-poçt formu */}
+        <form onSubmit={handleEmail} className="mt-6 space-y-3 text-left">
+          {mode === "signup" && (
+            <Field
+              icon={<User size={16} />}
+              type="text"
+              placeholder={t("auth.namePh")}
+              value={name}
+              onChange={setName}
+              autoComplete="name"
+            />
           )}
-        </button>
+          <Field
+            icon={<Mail size={16} />}
+            type="email"
+            placeholder={t("auth.emailPh")}
+            value={email}
+            onChange={setEmail}
+            autoComplete="email"
+          />
+          <Field
+            icon={<Lock size={16} />}
+            type="password"
+            placeholder={t("auth.passwordPh")}
+            value={password}
+            onChange={setPassword}
+            autoComplete={mode === "login" ? "current-password" : "new-password"}
+          />
+
+          <button
+            type="submit"
+            disabled={busy}
+            className="mt-1 flex w-full items-center justify-center rounded-xl bg-accent py-3.5 text-sm font-semibold text-black transition-all duration-200 hover:brightness-110 active:translate-y-px disabled:opacity-60"
+          >
+            {busy
+              ? t("auth.loading")
+              : mode === "login"
+                ? t("auth.submitLogin")
+                : t("auth.submitSignup")}
+          </button>
+        </form>
 
         {error && (
-          <p className="mt-4 rounded-lg border border-down/30 bg-down/10 px-3 py-2 text-sm text-down">
+          <p className="mt-4 rounded-lg border border-down/30 bg-down/10 px-3 py-2 text-center text-sm text-down">
             {error}
           </p>
         )}
 
+        {/* ayırıcı */}
+        <div className="my-6 flex items-center gap-3">
+          <span className="h-px flex-1 bg-border" />
+          <span className="text-xs uppercase tracking-wider text-muted">
+            {t("auth.or")}
+          </span>
+          <span className="h-px flex-1 bg-border" />
+        </div>
+
+        {/* alternativ — Google */}
+        <button
+          onClick={handleGoogle}
+          disabled={busy}
+          className="group flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-white py-3.5 text-sm font-semibold text-[#1f1f22] transition-all duration-200 hover:-translate-y-0.5 hover:shadow-[0_10px_30px_-8px_rgba(255,255,255,0.25)] active:translate-y-0 disabled:opacity-60"
+        >
+          <GoogleIcon />
+          {t("auth.google")}
+        </button>
+
         {!googleConfigured() && (
-          <p className="mt-4 text-xs text-muted">{t("auth.demoNote")}</p>
+          <p className="mt-4 text-center text-xs text-muted">
+            {t("auth.demoNote")}
+          </p>
         )}
 
-        <p className="mt-8 text-xs leading-relaxed text-muted">
+        <p className="mt-7 text-center text-xs leading-relaxed text-muted">
           {t("auth.terms")}
         </p>
       </div>
@@ -116,6 +223,37 @@ export function AuthScreen({
       <div className="absolute inset-x-0 bottom-0">
         <Ticker />
       </div>
+    </div>
+  );
+}
+
+/** İkon + input sahəsi. */
+function Field({
+  icon,
+  type,
+  placeholder,
+  value,
+  onChange,
+  autoComplete,
+}: {
+  icon: React.ReactNode;
+  type: string;
+  placeholder: string;
+  value: string;
+  onChange: (v: string) => void;
+  autoComplete?: string;
+}) {
+  return (
+    <div className="flex items-center gap-3 rounded-xl border border-border bg-surface px-3.5 focus-within:border-accent">
+      <span className="text-muted">{icon}</span>
+      <input
+        type={type}
+        placeholder={placeholder}
+        value={value}
+        autoComplete={autoComplete}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full bg-transparent py-3 text-sm text-text placeholder:text-muted/70 focus:outline-none"
+      />
     </div>
   );
 }

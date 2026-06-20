@@ -1,9 +1,10 @@
 "use client";
 
-import { LogOut, MessageSquare } from "lucide-react";
+import { LogOut } from "lucide-react";
 import type { Category } from "@/types";
 import { useI18n } from "@/lib/i18n";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { NewsSearch } from "@/components/search/NewsSearch";
 
 const TABS: { key: Category; label: string }[] = [
   { key: "forex", label: "Forex" },
@@ -28,7 +29,7 @@ export function Header({
         <div className="flex items-center gap-2.5">
           <span className="pulse-dot h-2.5 w-2.5 rounded-full bg-accent" />
           <span className="text-lg font-semibold tracking-tight">
-            Nexus<span className="text-accent">FX</span>
+            Nexus<span className="text-accent">IQ</span>
           </span>
         </div>
 
@@ -51,13 +52,7 @@ export function Header({
 
         {/* sağ tərəf */}
         <div className="flex items-center gap-2">
-          <button
-            className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-all duration-200 hover:border-accent hover:text-text"
-            title={t("header.aiAnalyst")}
-          >
-            <MessageSquare size={15} />
-            <span className="hidden sm:inline">{t("header.aiAnalyst")}</span>
-          </button>
+          <NewsSearch />
           <LanguageSwitcher />
           <button
             onClick={onLogout}

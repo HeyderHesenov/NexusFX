@@ -15,7 +15,7 @@ Terminalda işlət:
 brew services start postgresql@14
 
 # Baza yarat
-createdb nexusfx
+createdb nexusiq
 ```
 > Əgər `createdb` istifadəçi xətası verərsə, `.env`-dəki
 > `DATABASE_URL` istifadəçi/parolunu öz Postgres istifadəçinə uyğunlaşdır.

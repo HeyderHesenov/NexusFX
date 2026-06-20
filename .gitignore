@@ -40,3 +40,7 @@ backend/app/analytics/_generated/
 
 # ---- Third-party agent skills (separate repo) ----
 skills/
+
+# test/build artifacts
+.playwright-mcp/
+*.tsbuildinfo

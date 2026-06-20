@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { AuthFlow } from "./AuthFlow";
 
-const AUTH_KEY = "nexusfx_session";
+const AUTH_KEY = "nexusiq_session";
 
 /**
  * Saytı qoruyan qapı. Sessiya yoxdursa giriş ekranı göstərilir,

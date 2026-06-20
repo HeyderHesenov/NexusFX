@@ -1,4 +1,4 @@
-# NexusFX — Financial Intelligence Platform
+# NexusIQ — Financial Intelligence Platform
 
 > Bloomberg Terminal + AI Analyst + News Aggregator.
 > Maliyyə kəşfiyyat platforması. Lokal kurs final layihəsi.
@@ -37,7 +37,7 @@ RSS/API ─► NewsCollectorAgent ─► dedup/normalize ─► PostgreSQL
 
 ## Qovluq strukturu
 ```
-NexusFX/
+NexusIQ/
 ├── backend/          # FastAPI + AI agentləri + analitika
 │   └── app/
 │       ├── core/        # config, settings

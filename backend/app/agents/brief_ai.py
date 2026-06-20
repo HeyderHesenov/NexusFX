@@ -69,14 +69,19 @@ def _prompt(kind: str, name: str, sym: str, meta: str, lang: str) -> str:
         "Return JSON exactly like:\n"
         "{"
         '"what":"2-3 sentences: what this is, its purpose/logic, why markets watch it",'
-        '"scenarios":[{"label":"short scenario name","dir":"up","text":"what it means + typical market reaction"},'
+        '"scenarios":[{"label":"short scenario name","dir":"up","text":"DETAILED explanation"},'
         '{"label":"...","dir":"down","text":"..."}],'
         '"pairsNote":"short label of the reference scenario the pair biases assume",'
         '"pairs":[{"sym":"EUR/USD","bias":"up","reason":"how/why this instrument tends to move"}]'
         "}\n"
-        "Rules: exactly 2 scenarios. dir = up if that scenario is bullish for the subject, "
+        "Rules: exactly 2 scenarios. Each scenario `text` must be RICH and educational — "
+        "4-6 sentences covering: (1) what this outcome concretely means, (2) the mechanism / "
+        "WHY it moves markets, (3) the typical direction AND likely magnitude of the reaction, "
+        "(4) which assets/sectors react most, and (5) one nuance or caveat (e.g. when the "
+        "usual reaction may not hold). dir = up if the scenario is bullish for the subject, "
         "else down. pairs (3-4): bias (up/down/mixed) is each instrument's direction under "
-        "the FIRST scenario; pairsNote names that scenario. Keep every field concise."
+        "the FIRST scenario; pairsNote names that scenario. `what` stays concise; the depth "
+        "goes into the scenarios."
     )
 
 
@@ -105,7 +110,7 @@ async def market_brief(
             ],
             response_format={"type": "json_object"},
             temperature=0.4,
-            max_tokens=750,
+            max_tokens=1400,
         )
         data = json.loads(resp.choices[0].message.content or "{}")
     except Exception:  # noqa: BLE001

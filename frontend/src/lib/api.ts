@@ -92,24 +92,25 @@ export async function getFearGreed(): Promise<import("@/types").FearGreed | null
   }
 }
 
-export interface EventBrief {
+export interface Brief {
   ready: boolean;
   what?: string;
-  higher?: string;
-  lower?: string;
+  scenarios?: { label: string; dir: "up" | "down" | "mixed"; text: string }[];
+  pairsNote?: string;
   pairs?: { sym: string; bias: "up" | "down" | "mixed"; reason: string }[];
 }
 
-/** Təqvim hadisəsi haqqında AI izahı (nədir, yuxarı/aşağı təsir, pairlər). */
-export async function getEventBrief(
-  title: string,
-  country: string,
-  impact: string,
+/** İstənilən təqvim elementi üçün AI analizi (nədir, ssenarilər, instrumentlər). */
+export async function getBrief(
+  kind: string,
+  name: string,
+  sym: string,
+  meta: string,
   lang: string,
-): Promise<EventBrief> {
+): Promise<Brief> {
   try {
-    const qs = new URLSearchParams({ title, country, impact, lang });
-    return await apiGet(`/market/event-brief?${qs.toString()}`);
+    const qs = new URLSearchParams({ kind, name, sym, meta, lang });
+    return await apiGet(`/market/brief?${qs.toString()}`);
   } catch {
     return { ready: false };
   }

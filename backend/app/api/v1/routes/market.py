@@ -5,7 +5,7 @@ from fastapi import APIRouter
 
 from fastapi import Query
 
-from app.agents.event_ai import event_brief
+from app.agents.brief_ai import market_brief
 from app.agents.llm import has_openai
 from app.analytics.calendar import get_calendar
 from app.analytics.crypto_calendar import get_crypto_calendar
@@ -68,18 +68,19 @@ async def commodities() -> list[dict]:
 _LANGS = {"az", "en", "ru", "tr"}
 
 
-@router.get("/event-brief")
-async def event_brief_route(
-    title: str = Query(..., min_length=1),
-    country: str = Query(""),
-    impact: str = Query(""),
+@router.get("/brief")
+async def brief_route(
+    kind: str = Query("event"),
+    name: str = Query(..., min_length=1),
+    sym: str = Query(""),
+    meta: str = Query(""),
     lang: str = Query("az"),
 ) -> dict:
-    """Təqvim hadisəsi haqqında AI izahı — nədir, yuxarı/aşağı təsir, pairlər."""
+    """İstənilən təqvim elementi üçün AI analizi — nədir, ssenarilər, instrumentlər."""
     lang = lang if lang in _LANGS else "az"
     if not has_openai():
         return {"ready": False}
-    brief = await event_brief(title, country, impact, lang)
+    brief = await market_brief(kind, name, sym, meta, lang)
     if not brief:
         return {"ready": False}
     return {"ready": True, **brief}

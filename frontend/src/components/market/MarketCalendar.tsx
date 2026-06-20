@@ -57,7 +57,12 @@ const fromUS = (d: string) => {
 const RAIL =
   "flex gap-2.5 overflow-x-auto pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden";
 const CARD =
-  "flex shrink-0 flex-col gap-1.5 rounded-xl border border-border bg-bg/40 px-3.5 py-3";
+  "flex shrink-0 flex-col gap-1.5 rounded-xl border border-border bg-bg/40 px-3.5 py-3 transition-colors duration-150 hover:border-accent/60";
+
+/** /brief səhifəsinə link qurur. */
+function briefHref(params: Record<string, string>): string {
+  return "/brief?" + new URLSearchParams(params).toString();
+}
 
 /** Element üzərində axtarış üçün mətn (növ üzrə). */
 function itemText(kind: CalKind, it: unknown): string {
@@ -209,7 +214,18 @@ function Card({
   if (kind === "earnings") {
     const e = item as Earning;
     return (
-      <div className={`${CARD} w-44`}>
+      <Link
+        href={briefHref({
+          kind: "earnings",
+          name: e.name,
+          sym: e.sym,
+          badge: e.sym,
+          sub: `${fromISO(e.date)} · ${e.time}`,
+          meta: e.date,
+        })}
+        target="_blank"
+        className={`${CARD} w-44`}
+      >
         <div className="flex items-center justify-between">
           <span className="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[11px] font-bold tracking-wider text-accent">
             {e.sym}
@@ -219,14 +235,25 @@ function Card({
           </span>
         </div>
         <span className="truncate text-[13px] font-medium text-text/90">{e.name}</span>
-      </div>
+      </Link>
     );
   }
 
   if (kind === "unlocks") {
     const u = item as CryptoUnlock;
     return (
-      <div className={`${CARD} w-44`}>
+      <Link
+        href={briefHref({
+          kind: "unlock",
+          name: u.sym,
+          sym: u.sym,
+          badge: u.sym,
+          sub: `${fromISO(u.date)} · ${u.tokens} ${t("market.unlock")}`,
+          meta: `${u.tokens} tokens, ${u.category}`,
+        })}
+        target="_blank"
+        className={`${CARD} w-44`}
+      >
         <div className="flex items-center justify-between">
           <span className="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[11px] font-bold tracking-wider text-accent">
             {u.sym}
@@ -244,14 +271,24 @@ function Card({
             {u.category}
           </span>
         )}
-      </div>
+      </Link>
     );
   }
 
   if (kind === "prices") {
     const q = item as Quote;
     return (
-      <div className={`${CARD} w-44`}>
+      <Link
+        href={briefHref({
+          kind: "asset",
+          name: q.sym,
+          sym: q.sym,
+          badge: q.sym,
+          sub: `${q.val}  ${q.chg}`,
+        })}
+        target="_blank"
+        className={`${CARD} w-44`}
+      >
         <div className="flex items-center justify-between">
           <span className="font-mono text-[11px] font-semibold tracking-wider text-text/80">
             {q.sym}
@@ -266,14 +303,25 @@ function Card({
           {q.val}
         </span>
         {q.spark && <Sparkline data={q.spark} />}
-      </div>
+      </Link>
     );
   }
 
   if (kind === "cryptoEvents") {
     const e = item as MajorEvent;
     return (
-      <div className={`${CARD} w-44`}>
+      <Link
+        href={briefHref({
+          kind: "cryptoEvent",
+          name: `${e.sym} — ${t(`market.ev.${e.type}`)}`,
+          sym: e.sym,
+          badge: e.sym,
+          sub: `${t(`market.ev.${e.type}`)} · ${fromISO(e.date)}`,
+          meta: `${e.type}, ${e.note}`,
+        })}
+        target="_blank"
+        className={`${CARD} w-44`}
+      >
         <div className="flex items-center justify-between">
           <span className="rounded bg-accent/15 px-1.5 py-0.5 font-mono text-[11px] font-bold tracking-wider text-accent">
             {e.sym}
@@ -286,29 +334,23 @@ function Card({
         {e.note && (
           <span className="font-mono text-[11px] text-muted">{e.note}</span>
         )}
-      </div>
+      </Link>
     );
   }
 
-  // events — klikləndə hadisə izah səhifəsi açılır (yeni tab)
+  // events — klikləndə hadisə analiz səhifəsi açılır (yeni tab)
   const e = item as CalEvent;
-  const href =
-    "/event?" +
-    new URLSearchParams({
-      title: e.title,
-      country: e.country,
-      impact: e.impact,
-      date: e.date,
-      time: e.time,
-      forecast: e.forecast,
-      previous: e.previous,
-    }).toString();
+  const href = briefHref({
+    kind: "event",
+    name: e.title,
+    badge: e.country,
+    sub: `${e.country} · ${e.impact} · ${fromUS(e.date)} ${e.time}`,
+    meta: `${e.country}, impact ${e.impact}`,
+    forecast: e.forecast,
+    previous: e.previous,
+  });
   return (
-    <Link
-      href={href}
-      target="_blank"
-      className={`${CARD} w-48 transition-colors duration-150 hover:border-accent/60`}
-    >
+    <Link href={href} target="_blank" className={`${CARD} w-48`}>
       <div className="flex items-center justify-between">
         <span className="rounded bg-surface-hover px-1.5 py-0.5 font-mono text-[10px] font-semibold tracking-wider text-text/80">
           {e.country}

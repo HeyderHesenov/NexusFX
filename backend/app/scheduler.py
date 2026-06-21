@@ -51,7 +51,22 @@ async def ingest_cycle() -> None:
             except Exception:  # noqa: BLE001
                 logger.exception("Planlı AI emal xətası")
 
+    await _translate_cycle()
     await _anomaly_cycle()
+
+
+async def _translate_cycle() -> None:
+    """Tərcüməsiz xəbərləri PULSUZ 4 dilə tərcümə edir (GPT-dən asılı deyil)."""
+    if not settings.free_translate_enabled:
+        return
+    from app.agents.translate_free import translate_pending
+
+    try:
+        stats = await translate_pending()
+        if stats.get("translated"):
+            logger.info("Pulsuz tərcümə — %s xəbər", stats["translated"])
+    except Exception:  # noqa: BLE001
+        logger.exception("Pulsuz tərcümə xətası")
 
 
 async def _anomaly_cycle() -> None:

@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     # AI tərcümə (GPT) XƏRC tələb edir — default söndürülü.
     scheduler_ai_process: bool = False
     scheduler_ai_batch: int = 8
+    # Pulsuz maşın tərcüməsi (Google free endpoint) — xəbərləri 4 dilə
+    # SADİQ tərcümə edir (GPT kimi yenidən YAZMIR). Xərcsiz → default aktiv.
+    free_translate_enabled: bool = True
+    free_translate_batch: int = 12
 
     # ---- Web Push (VAPID) ----
     vapid_private_key: str = ""

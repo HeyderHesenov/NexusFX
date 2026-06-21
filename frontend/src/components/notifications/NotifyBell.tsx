@@ -92,13 +92,13 @@ export function NotifyBell() {
         disabled={disabled}
         title={title}
         aria-label={title}
-        className={`flex items-center rounded-lg border px-3 py-1.5 text-sm transition-all duration-200 ${
+        className={`grid h-9 w-9 place-items-center rounded-lg transition-colors duration-200 ${
           state === "on"
-            ? "border-accent/60 bg-accent/10 text-accent"
-            : "border-border bg-surface text-muted hover:text-text hover:bg-surface-hover"
+            ? "bg-accent/15 text-accent"
+            : "text-muted hover:bg-surface-hover hover:text-text"
         } ${disabled ? "cursor-not-allowed opacity-50" : ""} ${busy ? "animate-pulse" : ""}`}
       >
-        <Icon size={15} />
+        <Icon size={16} />
       </button>
 
       {flash && (

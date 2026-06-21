@@ -36,7 +36,8 @@ export function NewsCard({ news }: { news: NewsItem }) {
         <span className="absolute left-3 top-3 rounded-md bg-bg/80 px-2 py-1 font-mono text-[10px] font-medium uppercase tracking-wider text-accent backdrop-blur">
           {CAT_LABEL[news.category]}
         </span>
-        <div className="absolute right-3 top-3">
+        {/* desktop: yalnız hover/fokusda görünür */}
+        <div className="absolute right-3 top-3 hidden opacity-0 transition-opacity duration-200 group-hover:opacity-100 group-focus-within:opacity-100 sm:block">
           <BookmarkButton news={news} />
         </div>
       </div>
@@ -58,9 +59,15 @@ export function NewsCard({ news }: { news: NewsItem }) {
           <span className="truncate text-xs font-medium text-muted">
             {news.source ?? "—"}
           </span>
-          <span className="shrink-0 font-mono text-[11px] text-muted">
-            {formatDateTime(news.publishedAt)}
-          </span>
+          <div className="flex shrink-0 items-center gap-1.5">
+            <span className="font-mono text-[11px] text-muted">
+              {formatDateTime(news.publishedAt)}
+            </span>
+            {/* mobil: əlfəcin həmişə altda görünür (şəklin üstündə yox) */}
+            <span className="sm:hidden">
+              <BookmarkButton news={news} />
+            </span>
+          </div>
         </div>
       </div>
     </Link>

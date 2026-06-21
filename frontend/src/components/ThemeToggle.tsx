@@ -14,9 +14,9 @@ export function ThemeToggle() {
       onClick={toggle}
       title={dark ? t("theme.light") : t("theme.dark")}
       aria-label={dark ? t("theme.light") : t("theme.dark")}
-      className="flex items-center rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-all duration-200 hover:border-accent hover:text-accent"
+      className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-colors duration-200 hover:bg-surface-hover hover:text-accent"
     >
-      {dark ? <Sun size={15} /> : <Moon size={15} />}
+      {dark ? <Sun size={16} /> : <Moon size={16} />}
     </button>
   );
 }

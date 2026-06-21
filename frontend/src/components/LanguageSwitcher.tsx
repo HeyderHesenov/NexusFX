@@ -27,12 +27,13 @@ export function LanguageSwitcher() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="flex items-center gap-2 rounded-lg border border-border bg-surface/80 px-3 py-1.5 text-sm text-muted backdrop-blur transition-all duration-200 hover:border-accent hover:text-text"
+        title={current.label}
+        aria-label={current.label}
+        className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-muted transition-colors duration-200 hover:bg-surface-hover hover:text-text"
       >
         <span className="text-base leading-none">{current.flag}</span>
-        <span className="font-medium uppercase">{current.code}</span>
         <ChevronDown
-          size={14}
+          size={13}
           className={`transition-transform duration-200 ${open ? "rotate-180" : ""}`}
         />
       </button>

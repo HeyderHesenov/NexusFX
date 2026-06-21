@@ -64,16 +64,16 @@ export function AppNav() {
           <Link
             href="/alerts"
             title={t("nav.alerts")}
-            className="flex items-center rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-all duration-200 hover:border-accent hover:text-accent"
+            className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-colors duration-200 hover:bg-surface-hover hover:text-accent"
           >
-            <Target size={15} />
+            <Target size={16} />
           </Link>
           <Link
             href="/saved"
             title={t("bm.title")}
-            className="flex items-center rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-all duration-200 hover:border-accent hover:text-accent"
+            className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-colors duration-200 hover:bg-surface-hover hover:text-accent"
           >
-            <Bookmark size={15} />
+            <Bookmark size={16} />
           </Link>
           <NotifyBell />
           <ThemeToggle />
@@ -81,9 +81,9 @@ export function AppNav() {
           <button
             onClick={logout}
             title={t("header.logout")}
-            className="flex items-center rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-all duration-200 hover:border-down/50 hover:text-down"
+            className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-colors duration-200 hover:bg-surface-hover hover:text-down"
           >
-            <LogOut size={15} />
+            <LogOut size={16} />
           </button>
         </div>
       </div>

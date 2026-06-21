@@ -26,16 +26,14 @@ export function NewsSearch() {
 
   return (
     <>
-      {/* tetikləyici düymə */}
+      {/* tetikləyici — kompakt ghost ikon (⌘K hələ də işləyir) */}
       <button
         onClick={() => setOpen(true)}
-        className="flex items-center gap-2 rounded-lg border border-border bg-surface/80 px-3 py-1.5 text-sm text-muted backdrop-blur transition-all duration-200 hover:border-accent hover:text-text"
+        title={`${t("search.trigger")} (⌘K)`}
+        aria-label={t("search.trigger")}
+        className="grid h-9 w-9 place-items-center rounded-lg text-muted transition-colors duration-200 hover:bg-surface-hover hover:text-text"
       >
-        <Search size={15} />
-        <span className="hidden lg:inline">{t("search.trigger")}</span>
-        <kbd className="ml-1 hidden rounded border border-border px-1.5 font-mono text-[10px] text-muted lg:inline">
-          ⌘K
-        </kbd>
+        <Search size={16} />
       </button>
 
       {open && <SearchOverlay onClose={() => setOpen(false)} />}

@@ -268,6 +268,17 @@ export async function getCorrelationPair(
   }
 }
 
+/** Bütün aktivlər — qiymət + 24s dəyişim + sparkline (CMC tərzi cədvəl). */
+export async function getAssetsOverview(): Promise<
+  import("@/types").AssetOverview[]
+> {
+  try {
+    return await apiGet(`/assets/overview`);
+  } catch {
+    return [];
+  }
+}
+
 /** İzlənə bilən aktivlərin reyestri. */
 export async function getAssets(): Promise<import("@/types").Asset[]> {
   try {

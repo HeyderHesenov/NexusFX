@@ -140,6 +140,18 @@ export interface AssetDetail {
   history: AssetHistory | null;
 }
 
+export interface AssetOverview {
+  key: string;
+  label: string;
+  type: AssetType;
+  val: string;
+  price: number;
+  chg: string;
+  chgPct: number;
+  up: boolean;
+  spark: number[];
+}
+
 export interface PowerLawProjection {
   years: number;
   date: string;

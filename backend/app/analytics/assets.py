@@ -264,6 +264,88 @@ def _history_sync(key: str, rng: str) -> dict | None:
     }
 
 
+_overview_cache: dict = {"ts": 0.0, "data": []}
+_OVERVIEW_TTL = 600.0  # 10 dəqiqə
+
+
+def _registry_overview_sync() -> dict[str, dict]:
+    """Reyestr aktivləri — toplu qiymət + 1aylıq sparkline (tək yf çağırışı)."""
+    out: dict[str, dict] = {}
+    syms = [s for _, _, s, _, _ in ASSETS]
+    try:
+        df = yf.download(
+            " ".join(syms), period="1mo", interval="1d",
+            auto_adjust=True, progress=False, threads=True,
+        )["Close"]
+    except Exception:  # noqa: BLE001
+        return out
+    for key, label, sym, typ, dec in ASSETS:
+        try:
+            series = df[sym].dropna() if sym in df else df.dropna()
+            closes = [float(v) for v in series.tail(22)]
+            if len(closes) < 2:
+                continue
+            last, prev = closes[-1], closes[-2]
+            chg = (last - prev) / prev * 100 if prev else 0.0
+            out[key] = {
+                "key": key, "label": label, "type": typ,
+                "val": _fmt(last, dec), "price": last,
+                "chg": f"{chg:+.2f}%", "chgPct": round(chg, 2), "up": chg >= 0,
+                "spark": [round(c, 4) for c in closes],
+            }
+        except (KeyError, IndexError, ValueError, TypeError):
+            continue
+    return out
+
+
+async def _coin_spark(symbol: str) -> list[float]:
+    """Bir coin üçün ~7 günlük sparkline (Binance klines, 6 saatlıq)."""
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            r = await client.get(
+                "https://api.binance.com/api/v3/klines",
+                params={"symbol": symbol, "interval": "6h", "limit": 28},
+            )
+            r.raise_for_status()
+            return [round(float(k[4]), 6) for k in r.json()]
+    except (httpx.HTTPError, ValueError, IndexError):
+        return []
+
+
+async def get_overview() -> list[dict]:
+    """Bütün aktivlər — qiymət + 24s dəyişim + sparkline (CMC tərzi cədvəl, 10 dəq keş)."""
+    now = time.time()
+    if _overview_cache["data"] and now - _overview_cache["ts"] < _OVERVIEW_TTL:
+        return _overview_cache["data"]
+
+    await _ensure_coins()
+    reg = await asyncio.to_thread(_registry_overview_sync)
+
+    # Coin sparkline-ları paralel (məhdud).
+    coin_items = list(_coins.items())
+    sem = asyncio.Semaphore(8)
+
+    async def coin_row(key: str, c: dict) -> dict:
+        async with sem:
+            spark = await _coin_spark(c["symbol"])
+        dec = _coin_dec(c["price"])
+        return {
+            "key": key, "label": c["label"], "type": "crypto",
+            "val": _fmt(c["price"], dec), "price": c["price"],
+            "chg": f"{c['chgPct']:+.2f}%", "chgPct": round(c["chgPct"], 2),
+            "up": c["chgPct"] >= 0, "spark": spark,
+        }
+
+    coin_rows = await asyncio.gather(*(coin_row(k, c) for k, c in coin_items))
+
+    # Sıra: reyestr (ASSETS ardıcıllığı) + coinlər (həcm sırası).
+    rows = [reg[k] for k, _, _, _, _ in ASSETS if k in reg] + list(coin_rows)
+    if rows:
+        _overview_cache["data"] = rows
+        _overview_cache["ts"] = now
+    return _overview_cache["data"]
+
+
 async def get_history(key: str, rng: str = "3mo") -> dict | None:
     """Aktivin tarixi qiymət seriyası (30 dəq keş)."""
     rng = rng if rng in _RANGE_MAP else "3mo"

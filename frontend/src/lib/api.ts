@@ -300,12 +300,25 @@ export async function getAssetDetail(
   }
 }
 
-/** Bitcoin Power Law (güc qanunu) modeli. */
-export async function getPowerLaw(): Promise<import("@/types").PowerLaw | null> {
+/** Lider coinin Power Law (güc qanunu) modeli. */
+export async function getPowerLaw(
+  asset = "btc",
+): Promise<import("@/types").PowerLaw | null> {
   try {
-    return await apiGet(`/market/powerlaw`);
+    return await apiGet(`/market/powerlaw?asset=${asset}`);
   } catch {
     return null;
+  }
+}
+
+/** Power Law dəstəklənən lider coinlər. */
+export async function getPowerLawAssets(): Promise<
+  { key: string; label: string }[]
+> {
+  try {
+    return await apiGet(`/market/powerlaw/assets`);
+  } catch {
+    return [];
   }
 }
 

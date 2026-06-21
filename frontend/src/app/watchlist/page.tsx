@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
 import { WatchButton } from "@/components/assets/WatchButton";
+import { AssetPicker } from "@/components/assets/AssetPicker";
 import { getAssets, getAssetQuote } from "@/lib/api";
 import { toggleWatch, useWatchlist } from "@/lib/watchlist";
 import { useI18n } from "@/lib/i18n";
@@ -41,9 +42,6 @@ export default function WatchlistPage() {
     };
   }, [watched]);
 
-  const notWatched = registry.filter((a) => !watched.includes(a.key));
-  const addAssets = notWatched.filter((a) => !a.key.startsWith("c_"));
-  const addCoins = notWatched.filter((a) => a.key.startsWith("c_"));
 
   return (
     <div className="min-h-screen">
@@ -93,41 +91,18 @@ export default function WatchlistPage() {
           </div>
         )}
 
-        {/* aktiv əlavə et */}
-        {addAssets.length > 0 && (
+        {/* aktiv idarəetmə — axtarışlı seçici */}
+        {registry.length > 0 && (
           <section className="mt-8">
             <h2 className="mb-3 text-sm font-semibold">{t("watch.addTitle")}</h2>
-            <div className="flex flex-wrap gap-2">
-              {addAssets.map((a) => (
-                <AddChip key={a.key} label={a.label} onClick={() => toggleWatch(a.key)} />
-              ))}
-            </div>
-          </section>
-        )}
-
-        {/* Binance top coinlər */}
-        {addCoins.length > 0 && (
-          <section className="mt-8">
-            <h2 className="mb-3 text-sm font-semibold">{t("watch.topCoins")}</h2>
-            <div className="flex flex-wrap gap-2">
-              {addCoins.map((a) => (
-                <AddChip key={a.key} label={a.label} onClick={() => toggleWatch(a.key)} />
-              ))}
-            </div>
+            <AssetPicker
+              assets={registry}
+              isSelected={(k) => watched.includes(k)}
+              onToggle={toggleWatch}
+            />
           </section>
         )}
       </main>
     </div>
-  );
-}
-
-function AddChip({ label, onClick }: { label: string; onClick: () => void }) {
-  return (
-    <button
-      onClick={onClick}
-      className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-all hover:border-accent hover:text-accent"
-    >
-      + {label}
-    </button>
   );
 }

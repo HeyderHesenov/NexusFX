@@ -157,6 +157,8 @@ export interface PowerLawPoint {
 }
 
 export interface PowerLaw {
+  key?: string;
+  label?: string;
   a: number;
   b: number;
   r2: number;

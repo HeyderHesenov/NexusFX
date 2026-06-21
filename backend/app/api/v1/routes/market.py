@@ -13,15 +13,21 @@ from app.analytics.earnings import get_earnings
 from app.analytics.majors_calendar import get_majors_calendar
 from app.analytics.feargreed import get_fear_greed
 from app.analytics.market import get_commodities, get_metals, get_quotes
-from app.analytics.powerlaw import get_power_law
+from app.analytics.powerlaw import get_power_law, list_powerlaw_assets
 
 router = APIRouter()
 
 
+@router.get("/powerlaw/assets")
+async def powerlaw_assets() -> list[dict]:
+    """Power Law dəstəklənən lider coinlər."""
+    return list_powerlaw_assets()
+
+
 @router.get("/powerlaw")
-async def powerlaw() -> dict:
-    """Bitcoin Power Law (güc qanunu) modeli — ədalətli dəyər + proqnoz."""
-    data = await get_power_law()
+async def powerlaw(asset: str = Query("btc")) -> dict:
+    """Lider coinin Power Law (güc qanunu) modeli — ədalətli dəyər + proqnoz."""
+    data = await get_power_law(asset)
     return data or {"ready": False}
 
 

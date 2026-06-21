@@ -1,9 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { GitCompare } from "lucide-react";
+import { GitCompare, X } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
 import { LineChart, SERIES_COLORS } from "@/components/charts/LineChart";
+import { AssetPicker } from "@/components/assets/AssetPicker";
 import { getAssets, getAssetDetail } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import type { Asset, AssetDetail } from "@/types";
@@ -72,24 +73,43 @@ export default function ComparePage() {
         </div>
         <p className="mb-5 text-sm text-muted">{t("compare.subtitle")}</p>
 
-        {/* aktiv seçimi */}
-        <div className="mb-4 flex flex-wrap gap-2">
-          {registry.map((a) => {
-            const on = selected.includes(a.key);
+        {/* seçilmiş aktivlər — rəngli pill-lər */}
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {selected.map((k, i) => {
+            const label = registry.find((a) => a.key === k)?.label ?? k;
             return (
-              <button
-                key={a.key}
-                onClick={() => toggle(a.key)}
-                className={`rounded-lg border px-3 py-1.5 text-sm transition-all ${
-                  on
-                    ? "border-accent bg-accent/15 text-accent"
-                    : "border-border bg-surface text-muted hover:text-text"
-                }`}
+              <span
+                key={k}
+                className="flex items-center gap-2 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm"
               >
-                {a.label}
-              </button>
+                <span
+                  className="h-2.5 w-2.5 rounded-sm"
+                  style={{ background: SERIES_COLORS[i % SERIES_COLORS.length] }}
+                />
+                {label}
+                <button
+                  onClick={() => toggle(k)}
+                  className="text-muted transition-colors hover:text-down"
+                  aria-label="sil"
+                >
+                  <X size={14} />
+                </button>
+              </span>
             );
           })}
+          <span className="font-mono text-xs text-muted">
+            {selected.length}/{MAX}
+          </span>
+        </div>
+
+        {/* aktiv seçici */}
+        <div className="mb-5">
+          <AssetPicker
+            assets={registry}
+            isSelected={(k) => selected.includes(k)}
+            onToggle={toggle}
+            disableUnselected={selected.length >= MAX}
+          />
         </div>
 
         {/* dövr */}
@@ -126,14 +146,22 @@ export default function ComparePage() {
               </tr>
             </thead>
             <tbody>
-              {selected.map((k) => {
+              {selected.map((k, i) => {
                 const d = details[k];
                 const q = d?.quote;
                 const h = d?.history;
                 const chg = h?.changePct ?? 0;
                 return (
                   <tr key={k} className="border-t border-border">
-                    <td className="px-4 py-2.5 font-medium">{q?.label ?? k}</td>
+                    <td className="px-4 py-2.5 font-medium">
+                      <span className="flex items-center gap-2">
+                        <span
+                          className="h-2.5 w-2.5 shrink-0 rounded-sm"
+                          style={{ background: SERIES_COLORS[i % SERIES_COLORS.length] }}
+                        />
+                        {q?.label ?? k}
+                      </span>
+                    </td>
                     <td className="px-4 py-2.5 text-right font-mono">
                       {q?.val ?? "—"}
                     </td>

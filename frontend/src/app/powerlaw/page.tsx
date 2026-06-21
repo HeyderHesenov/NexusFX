@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AppNav } from "@/components/layout/AppNav";
 import { PowerLawChart } from "@/components/powerlaw/PowerLawChart";
 import { AIAssistantFab } from "@/components/ai/AIAssistantFab";
-import { getPowerLaw } from "@/lib/api";
+import { getPowerLaw, getPowerLawAssets } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import type { PowerLaw } from "@/types";
 
@@ -16,17 +16,25 @@ function usd(n: number): string {
 
 export default function PowerLawPage() {
   const { t } = useI18n();
+  const [assets, setAssets] = useState<{ key: string; label: string }[]>([]);
+  const [asset, setAsset] = useState("btc");
   const [data, setData] = useState<PowerLaw | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
 
   useEffect(() => {
-    getPowerLaw().then((d) => {
+    getPowerLawAssets().then(setAssets);
+  }, []);
+
+  useEffect(() => {
+    setStatus("loading");
+    getPowerLaw(asset).then((d) => {
       setData(d);
       setStatus(d && d.series?.length ? "ready" : "error");
     });
-  }, []);
+  }, [asset]);
 
   const below = (data?.deviationPct ?? 0) < 0;
+  const label = data?.label ?? asset.toUpperCase();
 
   return (
     <div className="min-h-screen">
@@ -34,8 +42,27 @@ export default function PowerLawPage() {
       <main className="mx-auto max-w-5xl px-5 py-8">
         {/* eyebrow */}
         <p className="font-mono text-xs uppercase tracking-[0.25em] text-accent">
-          Bitcoin · {t("pl.title")}
+          {label} · {t("pl.title")}
         </p>
+
+        {/* coin seçici */}
+        {assets.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {assets.map((a) => (
+              <button
+                key={a.key}
+                onClick={() => setAsset(a.key)}
+                className={`rounded-lg border px-3 py-1 text-sm font-medium transition-all ${
+                  asset === a.key
+                    ? "border-accent bg-accent text-black"
+                    : "border-border bg-surface text-muted hover:text-text"
+                }`}
+              >
+                {a.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {status === "loading" && (
           <div className="mt-6 h-96 animate-pulse rounded-card bg-surface-hover" />
@@ -47,8 +74,8 @@ export default function PowerLawPage() {
         {status === "ready" && data && (
           <>
             {/* thesis — verdict */}
-            <h1 className="mt-2 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
-              {t("pl.heroPre")}{" "}
+            <h1 className="mt-4 max-w-3xl text-3xl font-semibold leading-tight tracking-tight sm:text-4xl">
+              {label} {t("pl.heroPre")}{" "}
               <span className={below ? "text-up" : "text-down"}>
                 {Math.abs(data.deviationPct)}% {below ? t("pl.below") : t("pl.above")}
               </span>{" "}

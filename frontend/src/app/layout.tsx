@@ -4,6 +4,7 @@ import "@/styles/globals.css";
 import { AuthGate } from "@/components/auth/AuthGate";
 import { LanguageProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
+import { AlertWatcher } from "@/components/alerts/AlertWatcher";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -54,6 +55,7 @@ export default function RootLayout({
         <ThemeProvider>
           <LanguageProvider>
             <AuthGate>{children}</AuthGate>
+            <AlertWatcher />
           </LanguageProvider>
         </ThemeProvider>
       </body>

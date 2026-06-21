@@ -1,0 +1,196 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { useParams } from "next/navigation";
+import { AppNav } from "@/components/layout/AppNav";
+import { LineChart } from "@/components/charts/LineChart";
+import { WatchButton } from "@/components/assets/WatchButton";
+import { NewsCard } from "@/components/news/NewsCard";
+import { AIAssistantFab } from "@/components/ai/AIAssistantFab";
+import { getAssetDetail, searchNews } from "@/lib/api";
+import { addAlert } from "@/lib/alerts";
+import { useI18n } from "@/lib/i18n";
+import type { AssetDetail, NewsItem } from "@/types";
+
+const RANGES = ["1mo", "3mo", "6mo", "1y"];
+
+export default function AssetPage() {
+  const { t } = useI18n();
+  const params = useParams<{ key: string }>();
+  const key = params.key;
+
+  const [range, setRange] = useState("3mo");
+  const [data, setData] = useState<AssetDetail | null>(null);
+  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [news, setNews] = useState<NewsItem[]>([]);
+
+  const load = useCallback(
+    (r: string) => {
+      setStatus("loading");
+      getAssetDetail(key, r).then((d) => {
+        setData(d);
+        setStatus(d && (d.quote || d.history) ? "ready" : "error");
+        if (d?.quote) searchNews(d.quote.label).then((n) => setNews(n.slice(0, 6)));
+      });
+    },
+    [key],
+  );
+
+  useEffect(() => {
+    load(range);
+  }, [range, load]);
+
+  const q = data?.quote;
+  const h = data?.history;
+  const chgColor = q ? (q.up ? "text-up" : "text-down") : "text-muted";
+
+  return (
+    <div className="min-h-screen">
+      <AppNav />
+      <main className="mx-auto max-w-7xl px-5 py-8">
+        {status === "loading" && (
+          <div className="h-72 animate-pulse rounded-card bg-surface-hover" />
+        )}
+        {status === "error" && (
+          <p className="py-20 text-center text-sm text-muted">
+            {t("asset.notFound")}
+          </p>
+        )}
+        {status === "ready" && (
+          <>
+            {/* başlıq */}
+            <div className="mb-5 flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <div>
+                  <h1 className="text-2xl font-semibold tracking-tight">
+                    {q?.label ?? key}
+                  </h1>
+                  {q && (
+                    <div className="mt-1 flex items-baseline gap-3">
+                      <span className="font-mono text-xl">{q.val}</span>
+                      <span className={`font-mono text-sm ${chgColor}`}>
+                        {q.chg}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+              <WatchButton assetKey={key} />
+            </div>
+
+            {/* dövr seçimi */}
+            <div className="mb-4 flex gap-1 rounded-xl border border-border bg-surface p-1 w-fit">
+              {RANGES.map((r) => (
+                <button
+                  key={r}
+                  onClick={() => setRange(r)}
+                  className={`rounded-lg px-3 py-1 text-sm font-medium transition-all ${
+                    range === r ? "bg-accent text-black" : "text-muted hover:text-text"
+                  }`}
+                >
+                  {r}
+                </button>
+              ))}
+            </div>
+
+            {/* qrafik */}
+            <section className="rounded-card border border-border bg-surface p-5">
+              {h && h.points.length > 1 ? (
+                <LineChart
+                  series={[
+                    {
+                      label: h.label,
+                      color: "#ff7a1a",
+                      points: h.points.map((p) => ({
+                        date: p.date,
+                        value: p.close,
+                      })),
+                    },
+                  ]}
+                />
+              ) : (
+                <p className="py-12 text-center text-sm text-muted">—</p>
+              )}
+            </section>
+
+            {/* sürətli siqnal */}
+            {q && <QuickAlert assetKey={key} label={q.label} price={q.price} />}
+
+            {/* əlaqəli xəbərlər */}
+            {news.length > 0 && (
+              <section className="mt-8">
+                <h2 className="mb-4 text-sm font-semibold">
+                  {t("asset.relatedNews")}
+                </h2>
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                  {news.map((n) => (
+                    <NewsCard key={n.id} news={n} />
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
+      </main>
+      <AIAssistantFab />
+    </div>
+  );
+}
+
+/** Bu aktiv üçün sürətli qiymət siqnalı yaratma. */
+function QuickAlert({
+  assetKey,
+  label,
+  price,
+}: {
+  assetKey: string;
+  label: string;
+  price: number;
+}) {
+  const { t } = useI18n();
+  const [value, setValue] = useState(String(price));
+  const [dir, setDir] = useState<"above" | "below">("above");
+  const [done, setDone] = useState(false);
+
+  function create() {
+    const p = parseFloat(value);
+    if (!Number.isFinite(p)) return;
+    addAlert({ key: assetKey, label, direction: dir, price: p });
+    setDone(true);
+    window.setTimeout(() => setDone(false), 2500);
+  }
+
+  return (
+    <section className="mt-6 rounded-card border border-border bg-surface p-4">
+      <h2 className="mb-3 text-sm font-semibold">{t("alert.quickTitle")}</h2>
+      <div className="flex flex-wrap items-center gap-2">
+        <div className="flex gap-1 rounded-lg border border-border bg-bg p-1">
+          {(["above", "below"] as const).map((d) => (
+            <button
+              key={d}
+              onClick={() => setDir(d)}
+              className={`rounded-md px-3 py-1 text-sm transition-all ${
+                dir === d ? "bg-accent text-black" : "text-muted hover:text-text"
+              }`}
+            >
+              {d === "above" ? t("alert.above") : t("alert.below")}
+            </button>
+          ))}
+        </div>
+        <input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          inputMode="decimal"
+          className="w-36 rounded-lg border border-border bg-bg px-3 py-2 text-sm focus:border-accent focus:outline-none"
+        />
+        <button
+          onClick={create}
+          className="rounded-lg bg-accent px-4 py-2 text-sm font-medium text-black transition-opacity hover:brightness-110"
+        >
+          {t("alert.create")}
+        </button>
+        {done && <span className="text-sm text-up">{t("alert.created")}</span>}
+      </div>
+    </section>
+  );
+}

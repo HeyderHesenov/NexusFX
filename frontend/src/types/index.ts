@@ -105,3 +105,37 @@ export interface CorrPair {
   series: CorrPairPoint[];
   explanation?: string;
 }
+
+export type AssetType = "crypto" | "index" | "forex" | "commodity" | "metal";
+
+export interface Asset {
+  key: string;
+  label: string;
+  sym: string;
+  type: AssetType;
+}
+
+export interface AssetQuote {
+  key: string;
+  label: string;
+  type: AssetType;
+  val: string;
+  price: number;
+  chg: string;
+  chgPct: number;
+  up: boolean;
+}
+
+export interface AssetHistory {
+  key: string;
+  label: string;
+  type: AssetType;
+  range: string;
+  points: { date: string; close: number }[];
+  changePct: number;
+}
+
+export interface AssetDetail {
+  quote: AssetQuote | null;
+  history: AssetHistory | null;
+}

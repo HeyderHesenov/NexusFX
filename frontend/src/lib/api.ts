@@ -268,4 +268,36 @@ export async function getCorrelationPair(
   }
 }
 
+/** İzlənə bilən aktivlərin reyestri. */
+export async function getAssets(): Promise<import("@/types").Asset[]> {
+  try {
+    return await apiGet(`/assets`);
+  } catch {
+    return [];
+  }
+}
+
+/** Tək aktivin canlı qiyməti. */
+export async function getAssetQuote(
+  key: string,
+): Promise<import("@/types").AssetQuote | null> {
+  try {
+    return await apiGet(`/assets/${key}/quote`);
+  } catch {
+    return null;
+  }
+}
+
+/** Aktiv: canlı qiymət + tarixi seriya. */
+export async function getAssetDetail(
+  key: string,
+  range = "3mo",
+): Promise<import("@/types").AssetDetail | null> {
+  try {
+    return await apiGet(`/assets/${key}?range=${range}`);
+  } catch {
+    return null;
+  }
+}
+
 export { API_BASE };

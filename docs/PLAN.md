@@ -74,6 +74,15 @@
 - Canlı bazar lenti — real qiymətlər (yfinance, /market/ticker, 60s).
 - Xəbər şəkilləri — brendli generativ thumbnail (öz şəklimiz, pulsuz).
 
+## Əlavə v2 (2026-06-21)  `[x]`
+- Light/Dark tema (ThemeToggle). ✅
+- Naviqasiya yenidən qurulması — səhifələrə bölmə (home=xəbər, /markets ayrı). ✅
+- Watchlist (#3) — /watchlist, localStorage. ✅
+- Qiymət siqnalları (#2) — /alerts + fon yoxlayıcı, pulsuz. ✅
+- Tək aktiv səhifəsi (#4) — /asset/[key], qiymət+chart+xəbər. ✅
+- Müqayisə (#7) — /compare, normallaşdırılmış qrafik. ✅
+- Aktiv API — /assets (reyestr, qiymət, tarixçə).
+
 ## Addım 9 — Bonuslar  `[x]`
 - Trending (ən təsirli xəbərlər). ✅ (/news/trending + home lenti)
 - Sentiment skoru. ✅ (heuristik leksikon, pulsuz)

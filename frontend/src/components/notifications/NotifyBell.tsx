@@ -34,11 +34,15 @@ export function NotifyBell() {
 
   function toast(msg: string) {
     setFlash(msg);
-    window.setTimeout(() => setFlash(null), 2600);
+    window.setTimeout(() => setFlash(null), 4500);
   }
 
   async function toggle() {
-    if (busy || state === "unsupported" || state === "blocked") return;
+    if (busy || state === "unsupported") return;
+    if (state === "blocked") {
+      toast(t("notify.blockedHint"));
+      return;
+    }
     setBusy(true);
     try {
       if (state === "on") {
@@ -51,10 +55,17 @@ export function NotifyBell() {
           setState("on");
           toast(t("notify.on"));
           await sendTestPush();
+        } else if (permissionState() === "denied") {
+          setState("blocked");
+          toast(t("notify.blocked"));
         } else {
-          setState(permissionState() === "denied" ? "blocked" : "off");
+          // istifadəçi icazə pəncərəsini bağladı / icazə vermədi
+          setState("off");
+          toast(t("notify.needAllow"));
         }
       }
+    } catch {
+      toast(t("notify.failed"));
     } finally {
       setBusy(false);
     }
@@ -70,7 +81,9 @@ export function NotifyBell() {
           : t("notify.enable");
 
   const Icon = state === "on" ? BellRing : state === "blocked" ? BellOff : Bell;
-  const disabled = busy || state === "unsupported" || state === "blocked";
+  // blocked halında düymə kliklənə bilər (izah göstərmək üçün); yalnız
+  // dəstəklənməyən brauzer və ya gözləmə zamanı tam deaktiv olur.
+  const disabled = busy || state === "unsupported";
 
   return (
     <div className="relative">
@@ -89,7 +102,7 @@ export function NotifyBell() {
       </button>
 
       {flash && (
-        <div className="absolute right-0 top-full z-40 mt-2 whitespace-nowrap rounded-lg border border-border bg-surface px-3 py-1.5 text-xs text-text shadow-lg">
+        <div className="absolute right-0 top-full z-40 mt-2 w-64 rounded-lg border border-border bg-surface px-3 py-2 text-xs leading-relaxed text-text shadow-lg">
           {flash}
         </div>
       )}

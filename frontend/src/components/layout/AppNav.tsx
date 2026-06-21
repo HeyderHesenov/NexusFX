@@ -15,6 +15,7 @@ const LINKS: { href: string; labelKey: string }[] = [
   { href: "/watchlist", labelKey: "nav.watchlist" },
   { href: "/compare", labelKey: "nav.compare" },
   { href: "/correlation", labelKey: "corr.nav" },
+  { href: "/powerlaw", labelKey: "pl.nav" },
 ];
 
 function logout() {

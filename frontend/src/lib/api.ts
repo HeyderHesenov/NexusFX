@@ -300,4 +300,13 @@ export async function getAssetDetail(
   }
 }
 
+/** Bitcoin Power Law (güc qanunu) modeli. */
+export async function getPowerLaw(): Promise<import("@/types").PowerLaw | null> {
+  try {
+    return await apiGet(`/market/powerlaw`);
+  } catch {
+    return null;
+  }
+}
+
 export { API_BASE };

@@ -8,6 +8,7 @@ from __future__ import annotations
 import asyncio
 import time
 
+import httpx
 import yfinance as yf
 
 from app.analytics.market import _live_last_prev
@@ -46,13 +47,90 @@ _hist_cache: dict[str, tuple[float, dict]] = {}
 _QUOTE_TTL = 60.0
 _HIST_TTL = 1800.0
 
+# ---- Binance top coinlər (dinamik) ----
+# Reyestrdə onsuz da olan baza coinlər (dublikat olmasın).
+_REGISTRY_BASES = {"BTC", "ETH", "SOL", "XRP"}
+# Stablecoin / leveraged token — atlanır.
+_SKIP_BASES = {"USDT", "USDC", "FDUSD", "TUSD", "BUSD", "DAI", "USDP", "EUR", "USDE"}
+_TOP_COINS = 50
+_COINS_TTL = 300.0  # 5 dəqiqə
+# key → {label, symbol, price, chgPct}
+_coins: dict[str, dict] = {}
+_coins_ts = 0.0
 
-def list_assets() -> list[dict]:
-    """Reyestr metadatası (UI seçicilər üçün)."""
-    return [
+
+def _is_leveraged(base: str) -> bool:
+    return any(base.endswith(x) for x in ("UP", "DOWN", "BULL", "BEAR"))
+
+
+async def _ensure_coins() -> None:
+    """Binance-dən həcmə görə top coinləri çəkir (5 dəq keş)."""
+    global _coins, _coins_ts
+    now = time.time()
+    if _coins and now - _coins_ts < _COINS_TTL:
+        return
+    try:
+        async with httpx.AsyncClient(timeout=12.0) as client:
+            r = await client.get("https://api.binance.com/api/v3/ticker/24hr")
+            r.raise_for_status()
+            rows = r.json()
+    except (httpx.HTTPError, ValueError):
+        return  # köhnə keş qalır
+
+    usdt = [
+        row for row in rows
+        if row.get("symbol", "").endswith("USDT")
+    ]
+    usdt.sort(key=lambda x: float(x.get("quoteVolume", 0) or 0), reverse=True)
+
+    coins: dict[str, dict] = {}
+    for row in usdt:
+        sym = row["symbol"]
+        base = sym[:-4]  # "USDT" çıxar
+        if (
+            base in _REGISTRY_BASES
+            or base in _SKIP_BASES
+            or "USD" in base  # stablecoin variantları (USD1, USDE, ...)
+            or _is_leveraged(base)
+        ):
+            continue
+        key = f"c_{base.lower()}"
+        coins[key] = {
+            "label": base,
+            "symbol": sym,
+            "price": float(row.get("lastPrice", 0) or 0),
+            "chgPct": float(row.get("priceChangePercent", 0) or 0),
+        }
+        if len(coins) >= _TOP_COINS:
+            break
+
+    if coins:
+        _coins = coins
+        _coins_ts = now
+
+
+async def list_assets() -> list[dict]:
+    """Reyestr metadatası (UI seçicilər üçün) + Binance top coinlər."""
+    await _ensure_coins()
+    base = [
         {"key": k, "label": lbl, "sym": sym, "type": typ}
         for k, lbl, sym, typ, _ in ASSETS
     ]
+    coins = [
+        {"key": k, "label": v["label"], "sym": v["symbol"], "type": "crypto"}
+        for k, v in _coins.items()
+    ]
+    return base + coins
+
+
+def _coin_dec(price: float) -> int:
+    if price >= 1000:
+        return 0
+    if price >= 1:
+        return 2
+    if price >= 0.01:
+        return 4
+    return 6
 
 
 def _fmt(value: float, dec: int) -> str:
@@ -83,6 +161,24 @@ def _quote_sync(key: str) -> dict | None:
 
 async def get_quote(key: str) -> dict | None:
     """Tək aktivin canlı qiyməti (60s keş)."""
+    if key.startswith("c_"):
+        await _ensure_coins()
+        c = _coins.get(key)
+        if not c:
+            return None
+        last, chg = c["price"], c["chgPct"]
+        dec = _coin_dec(last)
+        return {
+            "key": key,
+            "label": c["label"],
+            "type": "crypto",
+            "val": _fmt(last, dec),
+            "price": last,
+            "chg": f"{chg:+.2f}%",
+            "chgPct": round(chg, 2),
+            "up": chg >= 0,
+        }
+
     now = time.time()
     cached = _quote_cache.get(key)
     if cached and now - cached[0] < _QUOTE_TTL:
@@ -91,6 +187,46 @@ async def get_quote(key: str) -> dict | None:
     if data:
         _quote_cache[key] = (now, data)
     return data
+
+
+_KLINE_LIMITS = {"1mo": 30, "3mo": 90, "6mo": 180, "1y": 365}
+
+
+async def _coin_history(key: str, rng: str) -> dict | None:
+    c = _coins.get(key)
+    if not c:
+        return None
+    limit = _KLINE_LIMITS.get(rng, 90)
+    try:
+        async with httpx.AsyncClient(timeout=12.0) as client:
+            r = await client.get(
+                "https://api.binance.com/api/v3/klines",
+                params={"symbol": c["symbol"], "interval": "1d", "limit": limit},
+            )
+            r.raise_for_status()
+            rows = r.json()
+    except (httpx.HTTPError, ValueError):
+        return None
+    dec = _coin_dec(c["price"])
+    points = []
+    for k in rows:
+        ts = int(k[0]) // 1000
+        from datetime import datetime, timezone
+
+        d = datetime.fromtimestamp(ts, tz=timezone.utc).strftime("%Y-%m-%d")
+        points.append({"date": d, "close": round(float(k[4]), max(dec, 2))})
+    if len(points) < 2:
+        return None
+    first, last = points[0]["close"], points[-1]["close"]
+    chg = (last - first) / first * 100 if first else 0.0
+    return {
+        "key": key,
+        "label": c["label"],
+        "type": "crypto",
+        "range": rng,
+        "points": points,
+        "changePct": round(chg, 2),
+    }
 
 
 def _history_sync(key: str, rng: str) -> dict | None:
@@ -136,7 +272,13 @@ async def get_history(key: str, rng: str = "3mo") -> dict | None:
     cached = _hist_cache.get(ck)
     if cached and now - cached[0] < _HIST_TTL:
         return cached[1]
-    data = await asyncio.to_thread(_history_sync, key, rng)
+
+    if key.startswith("c_"):
+        await _ensure_coins()
+        data = await _coin_history(key, rng)
+    else:
+        data = await asyncio.to_thread(_history_sync, key, rng)
+
     if data:
         _hist_cache[ck] = (now, data)
     return data

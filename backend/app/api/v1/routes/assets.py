@@ -10,8 +10,8 @@ router = APIRouter()
 
 @router.get("")
 async def all_assets() -> list[dict]:
-    """İzlənə bilən aktivlərin reyestri."""
-    return assets.list_assets()
+    """İzlənə bilən aktivlərin reyestri + Binance top coinlər."""
+    return await assets.list_assets()
 
 
 @router.get("/{key}/quote")

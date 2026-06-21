@@ -42,6 +42,8 @@ export default function WatchlistPage() {
   }, [watched]);
 
   const notWatched = registry.filter((a) => !watched.includes(a.key));
+  const addAssets = notWatched.filter((a) => !a.key.startsWith("c_"));
+  const addCoins = notWatched.filter((a) => a.key.startsWith("c_"));
 
   return (
     <div className="min-h-screen">
@@ -92,23 +94,40 @@ export default function WatchlistPage() {
         )}
 
         {/* aktiv əlavə et */}
-        {notWatched.length > 0 && (
+        {addAssets.length > 0 && (
           <section className="mt-8">
             <h2 className="mb-3 text-sm font-semibold">{t("watch.addTitle")}</h2>
             <div className="flex flex-wrap gap-2">
-              {notWatched.map((a) => (
-                <button
-                  key={a.key}
-                  onClick={() => toggleWatch(a.key)}
-                  className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-all hover:border-accent hover:text-accent"
-                >
-                  + {a.label}
-                </button>
+              {addAssets.map((a) => (
+                <AddChip key={a.key} label={a.label} onClick={() => toggleWatch(a.key)} />
+              ))}
+            </div>
+          </section>
+        )}
+
+        {/* Binance top coinlər */}
+        {addCoins.length > 0 && (
+          <section className="mt-8">
+            <h2 className="mb-3 text-sm font-semibold">{t("watch.topCoins")}</h2>
+            <div className="flex flex-wrap gap-2">
+              {addCoins.map((a) => (
+                <AddChip key={a.key} label={a.label} onClick={() => toggleWatch(a.key)} />
               ))}
             </div>
           </section>
         )}
       </main>
     </div>
+  );
+}
+
+function AddChip({ label, onClick }: { label: string; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className="rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-muted transition-all hover:border-accent hover:text-accent"
+    >
+      + {label}
+    </button>
   );
 }

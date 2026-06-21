@@ -139,3 +139,34 @@ export interface AssetDetail {
   quote: AssetQuote | null;
   history: AssetHistory | null;
 }
+
+export interface PowerLawProjection {
+  years: number;
+  date: string;
+  model: number;
+  support: number;
+  resistance: number;
+}
+
+export interface PowerLawPoint {
+  date: string;
+  actual: number;
+  model: number;
+  low: number;
+  high: number;
+}
+
+export interface PowerLaw {
+  a: number;
+  b: number;
+  r2: number;
+  genesis: string;
+  lastDate: string;
+  price: number;
+  model: number;
+  support: number;
+  resistance: number;
+  deviationPct: number;
+  projections: PowerLawProjection[];
+  series: PowerLawPoint[];
+}

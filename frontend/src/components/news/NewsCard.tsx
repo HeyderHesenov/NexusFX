@@ -3,6 +3,7 @@
 import Link from "next/link";
 import type { NewsItem, Category } from "@/types";
 import { formatDateTime, localizedNews } from "@/lib/utils";
+import { prefetchForecast } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { NewsImage } from "@/components/news/NewsImage";
 import { NewsBadges } from "@/components/news/NewsBadges";
@@ -23,6 +24,8 @@ export function NewsCard({ news }: { news: NewsItem }) {
     <Link
       href={`/news/${news.id}`}
       target="_blank"
+      onMouseEnter={() => prefetchForecast(news.id, lang)}
+      onFocus={() => prefetchForecast(news.id, lang)}
       className="group flex flex-col overflow-hidden rounded-card border border-border bg-surface transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/50 hover:shadow-[0_12px_30px_-12px_rgba(0,0,0,0.6)]"
     >
       {/* real şəkil (alınmasa generativ fallback) */}

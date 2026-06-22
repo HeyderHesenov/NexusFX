@@ -1,6 +1,8 @@
 """Xəbər API route-ları — siyahı, axtarış, tək xəbər."""
 from __future__ import annotations
 
+import asyncio
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +18,10 @@ from app.models import News
 from app.schemas.news import NewsOut, _excerpt
 
 _LANGS = {"az", "en", "ru", "tr"}
+
+# Eyni (xəbər, dil) üçün paralel proqnoz sorğularını birləşdirir —
+# prefetch (hover) + səhifə açılışı eyni GPT çağırışını paylaşır (təkrar xərc yox).
+_forecast_inflight: dict[tuple[int, str], "asyncio.Future[dict | None]"] = {}
 
 router = APIRouter()
 
@@ -174,13 +180,30 @@ async def get_forecast(
     if not has_openai():
         return {"ready": False}
 
-    fc = await forecast_impact(news.title, news.summary, news.category, lang)
-    if not fc:
-        return {"ready": False}
+    # Eyni xəbər üçün artıq bir çağırış gedirsə (prefetch), onu gözlə.
+    key = (news_id, lang)
+    inflight = _forecast_inflight.get(key)
+    if inflight is not None:
+        fc = await inflight
+        return {"ready": True, **fc} if fc else {"ready": False}
 
-    store = dict(news.forecast or {})
-    store[lang] = fc
-    news.forecast = store
-    flag_modified(news, "forecast")
-    await db.commit()
-    return {"ready": True, **fc}
+    fut: "asyncio.Future[dict | None]" = asyncio.get_event_loop().create_future()
+    _forecast_inflight[key] = fut
+    try:
+        fc = await forecast_impact(news.title, news.summary, news.category, lang)
+        if fc:
+            store = dict(news.forecast or {})
+            store[lang] = fc
+            news.forecast = store
+            flag_modified(news, "forecast")
+            await db.commit()
+        if not fut.done():
+            fut.set_result(fc)
+    except Exception:  # noqa: BLE001
+        if not fut.done():
+            fut.set_result(None)
+        raise
+    finally:
+        _forecast_inflight.pop(key, None)
+
+    return {"ready": True, **fc} if fc else {"ready": False}

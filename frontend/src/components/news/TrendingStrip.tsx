@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Flame } from "lucide-react";
 import type { Category, NewsItem } from "@/types";
-import { getTrending } from "@/lib/api";
+import { getTrending, prefetchForecast } from "@/lib/api";
 import { localizedNews } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
 import { NewsBadges } from "@/components/news/NewsBadges";
@@ -44,6 +44,8 @@ function TrendCard({ news, rank }: { news: NewsItem; rank: number }) {
     <Link
       href={`/news/${news.id}`}
       target="_blank"
+      onMouseEnter={() => prefetchForecast(news.id, lang)}
+      onFocus={() => prefetchForecast(news.id, lang)}
       className="group flex w-64 shrink-0 flex-col gap-2 rounded-card border border-border bg-surface p-3 transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/50"
     >
       <div className="flex items-center gap-2">

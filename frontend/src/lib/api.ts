@@ -61,6 +61,19 @@ export async function getForecast(
   }
 }
 
+const _forecastPrefetched = new Set<string>();
+
+/**
+ * Hover/fokus zamanı proqnozu öncədən isidir — server keşini doldurur ki,
+ * xəbər açılanda nəticə hazır olsun. Hər (id, dil) üçün yalnız bir dəfə.
+ */
+export function prefetchForecast(id: string, lang: string): void {
+  const k = `${id}:${lang}`;
+  if (_forecastPrefetched.has(k)) return;
+  _forecastPrefetched.add(k);
+  void getForecast(id, lang).catch(() => _forecastPrefetched.delete(k));
+}
+
 /** Ən təsirli xəbərlər (impact score + təzəlik üzrə). */
 export async function getTrending(
   category: string,

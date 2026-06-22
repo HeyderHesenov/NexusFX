@@ -51,8 +51,21 @@ async def ingest_cycle() -> None:
             except Exception:  # noqa: BLE001
                 logger.exception("Planlı AI emal xətası")
 
+    await _image_cycle()
     await _translate_cycle()
     await _anomaly_cycle()
+
+
+async def _image_cycle() -> None:
+    """Şəkilsiz xəbərlərə naşirin og:image-ini doldurur (thumbnail)."""
+    from app.ingestion.enrich_images import backfill
+
+    try:
+        stats = await backfill()
+        if stats.get("found"):
+            logger.info("Şəkil backfill — %s xəbər", stats["found"])
+    except Exception:  # noqa: BLE001
+        logger.exception("Şəkil backfill xətası")
 
 
 async def _translate_cycle() -> None:

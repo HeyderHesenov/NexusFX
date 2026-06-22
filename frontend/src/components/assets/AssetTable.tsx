@@ -38,15 +38,15 @@ export function SkeletonRow() {
 export function AssetRow({
   row,
   rank,
-  animate = false,
+  animClass = "",
 }: {
   row: AssetOverview;
   rank: number;
-  animate?: boolean;
+  animClass?: string;
 }) {
   return (
     <tr
-      className={`group border-t border-border transition-colors hover:bg-surface-hover ${animate ? "fade-up" : ""}`}
+      className={`group border-t border-border transition-colors hover:bg-surface-hover ${animClass}`}
     >
       <td className="px-3 py-2.5 text-right font-mono text-xs text-muted">{rank}</td>
       <td className="px-3 py-2.5">

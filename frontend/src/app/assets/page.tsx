@@ -22,6 +22,7 @@ export default function AssetsPage() {
   const [filter, setFilter] = useState<AssetType>("crypto");
   const [q, setQ] = useState("");
   const [showAll, setShowAll] = useState(false);
+  const [collapsing, setCollapsing] = useState(false);
 
   useEffect(() => {
     getAssetsOverview().then((d) => {
@@ -31,7 +32,24 @@ export default function AssetsPage() {
   }, []);
 
   // filtr və ya axtarış dəyişəndə yenidən ilk 10-a qayıt
-  useEffect(() => setShowAll(false), [filter, q]);
+  useEffect(() => {
+    setShowAll(false);
+    setCollapsing(false);
+  }, [filter, q]);
+
+  // Aç → dərhal göstər (fade-up). Bağla → əvvəl fade-out, sonra sil (yumşaq).
+  function toggleShowAll() {
+    if (collapsing) return;
+    if (showAll) {
+      setCollapsing(true);
+      window.setTimeout(() => {
+        setShowAll(false);
+        setCollapsing(false);
+      }, 300);
+    } else {
+      setShowAll(true);
+    }
+  }
 
   const query = q.trim().toLowerCase();
   const view = useMemo(
@@ -105,7 +123,9 @@ export default function AssetsPage() {
                     key={r.key}
                     row={r}
                     rank={i + 1}
-                    animate={showAll && i >= LIMIT}
+                    animClass={
+                      i >= LIMIT ? (collapsing ? "fade-out" : "fade-up") : ""
+                    }
                   />
                 ))}
 
@@ -122,7 +142,7 @@ export default function AssetsPage() {
           {/* daha çox / daha az göstər — yalnız 10-dan çox olanda */}
           {status === "ready" && view.length > LIMIT && (
             <button
-              onClick={() => setShowAll((v) => !v)}
+              onClick={toggleShowAll}
               aria-expanded={showAll}
               className="flex w-full items-center justify-center gap-2 border-t border-border bg-surface py-2.5 text-xs font-medium text-muted transition-colors hover:bg-surface-hover hover:text-accent"
             >

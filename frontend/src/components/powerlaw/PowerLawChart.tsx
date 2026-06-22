@@ -36,7 +36,7 @@ export function PowerLawChart({ series }: { series: PowerLawPoint[] }) {
     path((p) => p.high) +
     " " +
     series
-      .map((p, i) => `L${sx(series.length - 1 - i).toFixed(1)},${sy(series[series.length - 1 - i].low).toFixed(1)}`)
+      .map((_, i) => `L${sx(series.length - 1 - i).toFixed(1)},${sy(series[series.length - 1 - i].low).toFixed(1)}`)
       .join(" ") +
     " Z";
 

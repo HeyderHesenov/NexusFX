@@ -66,5 +66,3 @@ export function useAlerts(): AlertRule[] {
   }, []);
   return list;
 }
-
-export const ALERTS_EVENT = EVENT;

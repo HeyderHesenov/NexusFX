@@ -186,15 +186,7 @@ export async function getMajorsCalendar(): Promise<
   }
 }
 
-/** AI Asistanta sual göndərir (arxa fonda ikili AI debate). */
-export async function sendChat(
-  message: string,
-  lang: string,
-): Promise<{ answer: string; refused: boolean }> {
-  return apiPost("/chat", { message, lang });
-}
-
-export interface ChatStreamHandlers {
+interface ChatStreamHandlers {
   onChart?: (chart: import("@/types").CorrPair) => void;
   onDelta?: (text: string) => void;
   onDone?: (refused: boolean) => void;
@@ -361,5 +353,3 @@ export async function getPowerLawAssets(): Promise<
     return [];
   }
 }
-
-export { API_BASE };

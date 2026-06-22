@@ -98,7 +98,7 @@ def _fit_sync(key: str) -> dict | None:
         })
 
     projections = []
-    for years in (1, 2, 4):
+    for years in (1, 2, 4, 8, 10, 20):
         fd = last_date + timedelta(days=365 * years)
         m = model_for((fd - t0).days)
         projections.append({

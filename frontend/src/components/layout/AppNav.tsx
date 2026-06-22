@@ -19,6 +19,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { useClickOutside } from "@/lib/useClickOutside";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NewsSearch } from "@/components/search/NewsSearch";
 import { NotifyBell } from "@/components/notifications/NotifyBell";
@@ -76,16 +77,7 @@ export function AppNav() {
   const pathname = usePathname();
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (navRef.current && !navRef.current.contains(e.target as Node)) {
-        setOpenGroup(null);
-      }
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
+  useClickOutside(navRef, () => setOpenGroup(null));
 
   useEffect(() => setOpenGroup(null), [pathname]);
 

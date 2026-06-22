@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Check, Plus, Search } from "lucide-react";
 import type { Asset } from "@/types";
 import { useI18n } from "@/lib/i18n";
+import { useClickOutside } from "@/lib/useClickOutside";
 
 const TYPE_ORDER = ["index", "forex", "metal", "commodity", "crypto"] as const;
 
@@ -27,14 +28,7 @@ export function AssetPicker({
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
+  useClickOutside(ref, () => setOpen(false));
 
   const query = q.trim().toLowerCase();
   const groups = useMemo(() => {

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Check, ChevronDown, Search } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { useClickOutside } from "@/lib/useClickOutside";
 import type { CalCategory, CalKind } from "@/lib/marketCategories";
 import type {
   CalEvent,
@@ -103,13 +104,7 @@ export function MarketCalendar({ categories }: { categories: CalCategory[] }) {
       ? items.filter((it) => itemText(active.kind, it).toLowerCase().includes(q))
       : items;
 
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
+  useClickOutside(ref, () => setOpen(false));
 
   return (
     <section className="mb-6 rounded-card border border-border bg-surface px-5 py-4">

@@ -1,25 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Check, ChevronDown } from "lucide-react";
 import { useI18n, LANGS } from "@/lib/i18n";
+import { useClickOutside } from "@/lib/useClickOutside";
 
 /** Dil seçici — qlobus düyməsi + açılan siyahı. */
 export function LanguageSwitcher() {
   const { lang, setLang } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  // Kənara klikləyəndə bağla.
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
+  useClickOutside(ref, () => setOpen(false));
 
   const current = LANGS.find((l) => l.code === lang)!;
 

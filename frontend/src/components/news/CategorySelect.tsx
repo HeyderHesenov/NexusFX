@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Check, ChevronDown, Layers } from "lucide-react";
 import type { Category } from "@/types";
 import { useI18n } from "@/lib/i18n";
+import { useClickOutside } from "@/lib/useClickOutside";
 
 const TABS: { key: Category; labelKey: string }[] = [
   { key: "forex", labelKey: "tab.forex" },
@@ -23,14 +24,7 @@ export function CategorySelect({
   const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function onClick(e: MouseEvent) {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
+  useClickOutside(ref, () => setOpen(false));
 
   return (
     <div ref={ref} className="relative">

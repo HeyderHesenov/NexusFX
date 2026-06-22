@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Search, Coins, ChevronDown } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
 import { Footer } from "@/components/layout/Footer";
@@ -23,6 +23,7 @@ export default function AssetsPage() {
   const [q, setQ] = useState("");
   const [showAll, setShowAll] = useState(false);
   const [collapsing, setCollapsing] = useState(false);
+  const tableRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     getAssetsOverview().then((d) => {
@@ -37,7 +38,18 @@ export default function AssetsPage() {
     setCollapsing(false);
   }, [filter, q]);
 
-  // Aç → dərhal göstər (fade-up). Bağla → əvvəl fade-out, sonra sil (yumşaq).
+  // Cədvəlin başına yumşaq scroll — sticky header qədər boşluq saxlayır.
+  function scrollToTableTop() {
+    const el = tableRef.current;
+    if (!el) return;
+    const header = document.querySelector("header");
+    const offset = (header?.offsetHeight ?? 64) + 12;
+    const top = el.getBoundingClientRect().top + window.scrollY - offset;
+    window.scrollTo({ top, behavior: "smooth" });
+  }
+
+  // Aç → dərhal göstər (fade-up). Bağla → əvvəl fade-out, sonra sil (yumşaq),
+  // layout oturduqdan SONRA siyahının başına yuxarı scroll (yalnız bağlananda).
   function toggleShowAll() {
     if (collapsing) return;
     if (showAll) {
@@ -45,6 +57,7 @@ export default function AssetsPage() {
       window.setTimeout(() => {
         setShowAll(false);
         setCollapsing(false);
+        requestAnimationFrame(() => requestAnimationFrame(scrollToTableTop));
       }, 300);
     } else {
       setShowAll(true);
@@ -110,7 +123,10 @@ export default function AssetsPage() {
         </div>
 
         {/* cədvəl */}
-        <div className="overflow-hidden rounded-card border border-border">
+        <div
+          ref={tableRef}
+          className="overflow-hidden rounded-card border border-border"
+        >
           <table className="w-full text-sm">
             <AssetTableHead />
             <tbody>

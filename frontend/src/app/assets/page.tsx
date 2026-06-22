@@ -38,27 +38,52 @@ export default function AssetsPage() {
     setCollapsing(false);
   }, [filter, q]);
 
-  // Cədvəlin başına yumşaq scroll — sticky header qədər boşluq saxlayır.
-  function scrollToTableTop() {
+  // Cədvəlin başına YALNIZ yuxarı yumşaq scroll — sticky header qədər boşluq.
+  // `top` qaytarır ki, çağıran scroll-un nə vaxt bitdiyini bilsin.
+  function scrollToTableTop(): number | null {
     const el = tableRef.current;
-    if (!el) return;
+    if (!el) return null;
     const header = document.querySelector("header");
     const offset = (header?.offsetHeight ?? 64) + 12;
     const top = el.getBoundingClientRect().top + window.scrollY - offset;
-    window.scrollTo({ top, behavior: "smooth" });
+    if (window.scrollY > top + 1) {
+      window.scrollTo({ top, behavior: "smooth" });
+      return top;
+    }
+    return null;
   }
 
-  // Aç → dərhal göstər (fade-up). Bağla → əvvəl fade-out, sonra sil (yumşaq),
-  // layout oturduqdan SONRA siyahının başına yuxarı scroll (yalnız bağlananda).
+  // Aç → dərhal göstər (fade-up).
+  // Bağla → əvvəlcə sıralar fade-out + EYNİ VAXTDA yumşaq yuxarı scroll
+  // (sıralar hələ yerindədir → kəskin "klamp" atma olmur), scroll/effekt
+  // bitəndən SONRA sıralar silinir.
   function toggleShowAll() {
     if (collapsing) return;
     if (showAll) {
       setCollapsing(true);
-      window.setTimeout(() => {
+      const scrolled = scrollToTableTop();
+
+      const remove = () => {
         setShowAll(false);
         setCollapsing(false);
-        requestAnimationFrame(() => requestAnimationFrame(scrollToTableTop));
-      }, 300);
+      };
+
+      if (scrolled === null) {
+        // Scroll lazım deyildi (artıq yuxarıdayıq) — sadəcə fade-out gözlə.
+        window.setTimeout(remove, 320);
+        return;
+      }
+
+      // Scroll bitəndə sil (scrollend), dəstəklənmirsə fallback.
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        window.removeEventListener("scrollend", finish);
+        remove();
+      };
+      window.addEventListener("scrollend", finish);
+      window.setTimeout(finish, 900);
     } else {
       setShowAll(true);
     }

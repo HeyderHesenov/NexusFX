@@ -12,7 +12,6 @@ Nəticə 60 saniyə keşlənir; xəta olarsa son uğurlu keş qaytarılır.
 from __future__ import annotations
 
 import asyncio
-import time
 
 import httpx
 import yfinance as yf

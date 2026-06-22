@@ -9,7 +9,7 @@ import asyncio
 
 from sqlalchemy import select
 
-from app.core.constants import CATEGORY_LABELS, Category as CategoryEnum
+from app.core.constants import CATEGORY_LABELS
 from app.db.base import Base
 from app.db.session import AsyncSessionLocal, engine
 from app.models import Category  # noqa: F401  (metadata qeydiyyatı üçün)

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search, Coins } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
+import { Footer } from "@/components/layout/Footer";
 import { Sparkline } from "@/components/charts/Sparkline";
 import { WatchButton } from "@/components/assets/WatchButton";
 import { getAssetsOverview } from "@/lib/api";
@@ -40,7 +41,7 @@ export default function AssetsPage() {
   );
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppNav />
       <main className="mx-auto max-w-6xl px-5 py-8">
         <div className="mb-5 flex items-center gap-2">
@@ -151,6 +152,7 @@ export default function AssetsPage() {
           </table>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

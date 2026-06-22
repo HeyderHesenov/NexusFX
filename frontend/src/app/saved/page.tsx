@@ -2,6 +2,7 @@
 
 import { Bookmark } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
+import { Footer } from "@/components/layout/Footer";
 import { useBookmarkList } from "@/lib/bookmarks";
 import { useI18n } from "@/lib/i18n";
 import { NewsCard } from "@/components/news/NewsCard";
@@ -11,7 +12,7 @@ export default function SavedPage() {
   const items = useBookmarkList();
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppNav />
 
       <main className="mx-auto max-w-7xl px-5 py-8">
@@ -40,6 +41,7 @@ export default function SavedPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

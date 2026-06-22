@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { Footer } from "@/components/layout/Footer";
 import { ArrowLeft, ExternalLink, Sparkles } from "lucide-react";
 import { apiGet } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
@@ -39,7 +40,7 @@ export default function NewsDetailPage({
   }, [id]);
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       {/* üst zolaq */}
       <header className="sticky top-0 z-30 border-b border-border bg-bg/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-5">
@@ -158,6 +159,7 @@ export default function NewsDetailPage({
           </article>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

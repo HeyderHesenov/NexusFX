@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { AppNav } from "@/components/layout/AppNav";
+import { Footer } from "@/components/layout/Footer";
 import { Ticker } from "@/components/market/Ticker";
 import { CategorySelect } from "@/components/news/CategorySelect";
 import { MarketCalendar } from "@/components/market/MarketCalendar";
@@ -16,7 +17,7 @@ export default function MarketsPage() {
   const [active, setActive] = useState<Category>("forex");
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppNav />
       <Ticker />
 
@@ -43,6 +44,7 @@ export default function MarketsPage() {
       </main>
 
       <AIAssistantFab />
+      <Footer />
     </div>
   );
 }

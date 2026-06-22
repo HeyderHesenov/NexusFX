@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { AppNav } from "@/components/layout/AppNav";
+import { Footer } from "@/components/layout/Footer";
 import { PowerLawChart } from "@/components/powerlaw/PowerLawChart";
 import { AIAssistantFab } from "@/components/ai/AIAssistantFab";
 import { getPowerLaw, getPowerLawAssets } from "@/lib/api";
@@ -37,7 +38,7 @@ export default function PowerLawPage() {
   const label = data?.label ?? asset.toUpperCase();
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppNav />
       <main className="mx-auto max-w-5xl px-5 py-8">
         {/* eyebrow */}
@@ -154,6 +155,7 @@ export default function PowerLawPage() {
         )}
       </main>
       <AIAssistantFab />
+      <Footer />
     </div>
   );
 }

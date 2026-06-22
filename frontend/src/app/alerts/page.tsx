@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Target, Trash2 } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
+import { Footer } from "@/components/layout/Footer";
 import { getAssets } from "@/lib/api";
 import { addAlert, removeAlert, useAlerts } from "@/lib/alerts";
 import { useI18n } from "@/lib/i18n";
@@ -32,7 +33,7 @@ export default function AlertsPage() {
   const fired = alerts.filter((a) => a.triggeredAt !== null);
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppNav />
       <main className="mx-auto max-w-3xl px-5 py-8">
         <div className="mb-2 flex items-center gap-2">
@@ -128,6 +129,7 @@ export default function AlertsPage() {
           </section>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

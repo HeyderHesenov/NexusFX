@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { AppNav } from "@/components/layout/AppNav";
+import { Footer } from "@/components/layout/Footer";
 import { LineChart } from "@/components/charts/LineChart";
 import { WatchButton } from "@/components/assets/WatchButton";
 import { AIAssistantFab } from "@/components/ai/AIAssistantFab";
@@ -48,7 +49,7 @@ export default function AssetPage() {
   const chgColor = q ? (q.up ? "text-up" : "text-down") : "text-muted";
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppNav />
       <main className="mx-auto max-w-7xl px-5 py-8">
         {status === "loading" && (
@@ -163,6 +164,7 @@ export default function AssetPage() {
         )}
       </main>
       <AIAssistantFab />
+      <Footer />
     </div>
   );
 }

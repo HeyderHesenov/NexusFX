@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { AppNav } from "@/components/layout/AppNav";
+import { Footer } from "@/components/layout/Footer";
 import { Ticker } from "@/components/market/Ticker";
 import { AIAssistantFab } from "@/components/ai/AIAssistantFab";
 import { NewsCard } from "@/components/news/NewsCard";
@@ -58,7 +59,7 @@ export default function HomePage() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppNav />
       <Ticker />
 
@@ -112,6 +113,7 @@ export default function HomePage() {
       </main>
 
       <AIAssistantFab />
+      <Footer />
     </div>
   );
 }

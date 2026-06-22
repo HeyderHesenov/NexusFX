@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
+import { Footer } from "@/components/layout/Footer";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -50,7 +51,7 @@ function BriefView() {
   }, [kind, name, sym, meta, lang]);
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b border-border bg-bg/80 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-5">
           <Link
@@ -172,6 +173,7 @@ function BriefView() {
           </>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

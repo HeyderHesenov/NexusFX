@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Star } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
+import { Footer } from "@/components/layout/Footer";
 import { WatchButton } from "@/components/assets/WatchButton";
 import { AssetPicker } from "@/components/assets/AssetPicker";
 import { Sparkline } from "@/components/charts/Sparkline";
@@ -45,7 +46,7 @@ export default function WatchlistPage() {
 
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppNav />
       <main className="mx-auto max-w-7xl px-5 py-8">
         <div className="mb-6 flex items-center gap-2">
@@ -116,6 +117,7 @@ export default function WatchlistPage() {
           </section>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

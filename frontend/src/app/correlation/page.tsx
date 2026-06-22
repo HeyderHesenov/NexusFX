@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Activity } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
+import { Footer } from "@/components/layout/Footer";
 import { getCorrelationMatrix, getCorrelationPair } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { CorrelationMatrix } from "@/components/correlation/CorrelationMatrix";
@@ -56,7 +57,7 @@ export default function CorrelationPage() {
     val >= 0.1 ? "text-up" : val <= -0.1 ? "text-down" : "text-muted";
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppNav />
 
       <main className="mx-auto max-w-7xl px-5 py-8">
@@ -187,6 +188,7 @@ export default function CorrelationPage() {
           )}
         </section>
       </main>
+      <Footer />
     </div>
   );
 }

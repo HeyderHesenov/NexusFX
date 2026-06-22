@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Activity, RefreshCw } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
+import { Footer } from "@/components/layout/Footer";
 import { getAnomalies } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import type { Anomaly, AnomalySeverity } from "@/types";
@@ -62,6 +63,7 @@ function DeviationGauge({ z, up }: { z: number; up: boolean }) {
         {z > 0 ? "+" : ""}
         {z.toFixed(1)}σ
       </div>
+      <Footer />
     </div>
   );
 }
@@ -87,7 +89,7 @@ export default function AnomaliesPage() {
   const asof = rows[0]?.asof ?? "";
 
   return (
-    <div className="min-h-screen">
+    <div className="flex min-h-screen flex-col">
       <AppNav />
       <main className="mx-auto max-w-4xl px-5 py-8">
         {/* başlıq */}

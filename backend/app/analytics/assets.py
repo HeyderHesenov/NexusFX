@@ -20,6 +20,9 @@ ASSETS: list[tuple[str, str, str, str, int]] = [
     ("eth", "ETH", "ETH-USD", "crypto", 0),
     ("sol", "SOL", "SOL-USD", "crypto", 2),
     ("xrp", "XRP", "XRP-USD", "crypto", 3),
+    # Perp DEX tokenləri — Binance top-50-də olmaya bilər, ona görə açıq əlavə
+    ("hype", "HYPE", "HYPE32196-USD", "crypto", 2),  # Hyperliquid (Binance-də yox)
+    ("aster", "ASTER", "ASTER36341-USD", "crypto", 4),  # Aster DEX
     # İndekslər (12)
     ("spx", "S&P 500", "^GSPC", "index", 0),
     ("ndx", "NASDAQ", "^NDX", "index", 0),
@@ -98,7 +101,7 @@ _HIST_TTL = 1800.0
 
 # ---- Binance top coinlər (dinamik) ----
 # Reyestrdə onsuz da olan baza coinlər (dublikat olmasın).
-_REGISTRY_BASES = {"BTC", "ETH", "SOL", "XRP"}
+_REGISTRY_BASES = {"BTC", "ETH", "SOL", "XRP", "HYPE", "ASTER"}
 # Stablecoin / leveraged token — atlanır.
 _SKIP_BASES = {"USDT", "USDC", "FDUSD", "TUSD", "BUSD", "DAI", "USDP", "EUR", "USDE"}
 _TOP_COINS = 50

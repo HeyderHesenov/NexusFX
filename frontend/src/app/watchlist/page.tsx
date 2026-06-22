@@ -30,6 +30,7 @@ const CRYPTO_SECTOR: Record<string, "ai" | "perpdex" | "rwa"> = {
   // Perp DEX
   DYDX: "perpdex", GMX: "perpdex", HYPE: "perpdex", SNX: "perpdex",
   AEVO: "perpdex", DRIFT: "perpdex", VRTX: "perpdex", JUP: "perpdex",
+  ASTER: "perpdex", APEX: "perpdex", EDGEN: "perpdex",
   // RWA (real-world assets)
   ONDO: "rwa", XAUT: "rwa", PAXG: "rwa", OM: "rwa", POLYX: "rwa",
   PENDLE: "rwa", CFG: "rwa", PLUME: "rwa",

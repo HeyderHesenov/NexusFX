@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { ChevronDown, Star } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
 import { Footer } from "@/components/layout/Footer";
 import { WatchButton } from "@/components/assets/WatchButton";
@@ -158,6 +158,8 @@ function PopularAssets() {
     };
   }, []);
 
+  const [expanded, setExpanded] = useState(false);
+
   const byKey = new Map(all.map((r) => [r.key, r]));
   const popular = SAMPLE_KEYS.map((k) => byKey.get(k)).filter(
     Boolean,
@@ -182,44 +184,70 @@ function PopularAssets() {
                 ))}
           </tbody>
         </table>
+
+        {/* Dow Jones-un altında aç/bağla düyməsi */}
+        <button
+          onClick={() => setExpanded((v) => !v)}
+          aria-expanded={expanded}
+          className="flex w-full items-center justify-center gap-2 border-t border-border bg-surface py-2.5 text-xs font-medium text-muted transition-colors hover:bg-surface-hover hover:text-accent"
+        >
+          {expanded ? t("watch.showLess") : t("watch.showAll")}
+          <ChevronDown
+            size={15}
+            className={`transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+          />
+        </button>
       </div>
 
-      {/* bütün aktivlər — yan kateqoriya seçici + cədvəl */}
-      <h2 className="mb-3 mt-10 text-sm font-semibold">{t("watch.showAll")}</h2>
-      <div className="flex flex-col gap-4 sm:flex-row">
-        {/* yan seçici — desktopda şaquli rail, mobildə üfüqi sürüşmə */}
-        <nav className="flex gap-2 overflow-x-auto pb-1 sm:w-44 sm:shrink-0 sm:flex-col sm:overflow-visible sm:pb-0">
-          {TYPE_ORDER.map((type) => {
-            const isActive = type === activeType;
-            return (
-              <button
-                key={type}
-                onClick={() => setActiveType(type)}
-                className={`flex shrink-0 items-center justify-between gap-3 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors ${
-                  isActive
-                    ? "border-accent/50 bg-accent-soft text-accent"
-                    : "border-border text-muted hover:border-border hover:text-text"
-                }`}
-              >
-                <span>{t(`atype.${type}`)}</span>
-                <span className="font-mono text-xs text-muted">{count(type)}</span>
-              </button>
-            );
-          })}
-        </nav>
+      {/* yumşaq açılan/bağlanan tam siyahı — max-height + opacity keçidi */}
+      <div
+        className={`overflow-hidden transition-all ease-out motion-reduce:transition-none ${
+          expanded
+            ? "mt-4 max-h-[5000px] opacity-100 duration-500"
+            : "max-h-0 opacity-0 duration-300"
+        }`}
+      >
+        <div>
+          <div className="flex flex-col gap-4 sm:flex-row">
+            {/* seçilmiş kateqoriyanın cədvəli — solda */}
+            <div className="min-w-0 flex-1 overflow-hidden rounded-card border border-border">
+              <table className="w-full text-sm">
+                <AssetTableHead />
+                <tbody>
+                  {all.length === 0
+                    ? Array.from({ length: 6 }).map((_, i) => (
+                        <SkeletonRow key={i} />
+                      ))
+                    : view.map((r, i) => (
+                        <AssetRow key={r.key} row={r} rank={i + 1} />
+                      ))}
+                </tbody>
+              </table>
+            </div>
 
-        {/* seçilmiş kateqoriyanın cədvəli */}
-        <div className="min-w-0 flex-1 overflow-hidden rounded-card border border-border">
-          <table className="w-full text-sm">
-            <AssetTableHead />
-            <tbody>
-              {all.length === 0
-                ? Array.from({ length: 6 }).map((_, i) => <SkeletonRow key={i} />)
-                : view.map((r, i) => (
-                    <AssetRow key={r.key} row={r} rank={i + 1} />
-                  ))}
-            </tbody>
-          </table>
+            {/* kateqoriya seçici — sağda (mobildə yuxarıda) */}
+            <nav className="order-first flex gap-2 overflow-x-auto pb-1 sm:order-none sm:w-44 sm:shrink-0 sm:flex-col sm:overflow-visible sm:pb-0">
+              {TYPE_ORDER.map((type) => {
+                const isActive = type === activeType;
+                return (
+                  <button
+                    key={type}
+                    onClick={() => setActiveType(type)}
+                    className={`flex shrink-0 items-center justify-between gap-3 rounded-lg border px-3.5 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "border-accent/50 bg-accent-soft text-accent"
+                        : "border-border text-muted hover:text-text"
+                    }`}
+                  >
+                    <span>{t(`atype.${type}`)}</span>
+                    <span className="font-mono text-xs text-muted">
+                      {count(type)}
+                    </span>
+                  </button>
+                );
+              })}
+            </nav>
+          </div>
         </div>
       </div>
     </section>

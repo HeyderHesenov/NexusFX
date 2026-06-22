@@ -38,7 +38,7 @@ export function Footer() {
   const year = 2026;
 
   return (
-    <footer className="mt-auto border-t border-border bg-surface/40">
+    <footer className="mt-auto border-t border-border bg-surface">
       <div className="mx-auto max-w-7xl px-5 py-12">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           {/* brend */}
@@ -52,7 +52,7 @@ export function Footer() {
             <p className="mt-3 text-sm leading-relaxed text-muted">
               {t("foot.tagline")}
             </p>
-            <div className="mt-5 inline-flex items-center gap-2 rounded-lg border border-border bg-bg/60 px-3 py-1.5">
+            <div className="mt-5 inline-flex items-center gap-2 rounded-lg border border-border bg-bg px-3 py-1.5">
               <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-up" />
               <span className="font-mono text-[11px] uppercase tracking-[0.18em] text-muted">
                 {t("foot.live")}
@@ -63,14 +63,14 @@ export function Footer() {
           {/* keçid sütunları */}
           {COLUMNS.map((col) => (
             <nav key={col.titleKey} className="flex flex-col gap-3">
-              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted/80">
+              <p className="font-mono text-[11px] uppercase tracking-[0.2em] text-muted">
                 {t(col.titleKey)}
               </p>
               {col.links.map((l) => (
                 <Link
                   key={l.href + l.labelKey}
                   href={l.href}
-                  className="w-fit text-sm text-text/90 transition-colors hover:text-accent"
+                  className="w-fit text-sm text-text transition-colors hover:text-accent"
                 >
                   {t(l.labelKey)}
                 </Link>
@@ -85,7 +85,7 @@ export function Footer() {
             © {year} NexusIQ. {t("foot.rights")} {t("foot.disclaimer")}
           </p>
           <p className="flex shrink-0 items-center gap-2 font-mono uppercase tracking-[0.16em]">
-            <span className="text-muted/70">{t("foot.sysLabel")}:</span>
+            <span className="text-muted">{t("foot.sysLabel")}:</span>
             <span className="inline-flex items-center gap-1.5 text-up">
               <span className="pulse-dot h-1.5 w-1.5 rounded-full bg-up" />
               {t("foot.sysOn")}

@@ -14,8 +14,11 @@ export function localizedNews(
   lang: string,
 ): { title: string; body: string } {
   const tr = news.translations?.[lang];
-  if (tr?.title && tr?.body) return { title: tr.title, body: tr.body };
-  return { title: news.title, body: news.summary ?? "" };
+  // Hər sahə müstəqil: tərcümə varsa onu, yoxdursa orijinala düş.
+  return {
+    title: tr?.title || news.title,
+    body: tr?.body || news.summary || "",
+  };
 }
 
 /** ISO tarixi "DD.MM.YYYY · HH:MM" formatına salır. */

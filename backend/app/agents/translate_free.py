@@ -66,13 +66,17 @@ async def translate_news(
 
 
 async def translate_pending(limit: int | None = None) -> dict[str, int]:
-    """Tərcüməsiz xəbərləri (translations IS NULL) pulsuz tərcümə edir."""
+    """Tərcüməsiz xəbərləri pulsuz tərcümə edir.
+
+    `title_az IS NULL` həm translations=NULL, həm də boş translations={} olan
+    xəbərləri tutur (köhnə ingestion bəzi sətirləri boş dict ilə yaratmışdı).
+    """
     limit = limit or settings.free_translate_batch
     async with AsyncSessionLocal() as session:
         rows = (
             await session.scalars(
                 select(News)
-                .where(News.translations.is_(None))
+                .where(News.title_az.is_(None))
                 .order_by(News.published_at.desc().nullslast())
                 .limit(limit)
             )

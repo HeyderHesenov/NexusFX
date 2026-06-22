@@ -63,7 +63,6 @@ function DeviationGauge({ z, up }: { z: number; up: boolean }) {
         {z > 0 ? "+" : ""}
         {z.toFixed(1)}σ
       </div>
-      <Footer />
     </div>
   );
 }
@@ -227,6 +226,7 @@ export default function AnomaliesPage() {
           </div>
         )}
       </main>
+      <Footer />
     </div>
   );
 }

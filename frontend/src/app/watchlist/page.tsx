@@ -13,6 +13,20 @@ import { toggleWatch, useWatchlist } from "@/lib/watchlist";
 import { useI18n } from "@/lib/i18n";
 import type { Asset, AssetDetail } from "@/types";
 
+/** Səhifə boş görünməsin deyə nümunə populyar aktivlər — bir kliklə əlavə. */
+const SAMPLE_KEYS = [
+  "btc",
+  "eth",
+  "xrp",
+  "eurusd",
+  "gbpusd",
+  "usdjpy",
+  "dxy",
+  "ndx",
+  "spx",
+  "dji",
+];
+
 export default function WatchlistPage() {
   const { t } = useI18n();
   const watched = useWatchlist();
@@ -116,8 +130,81 @@ export default function WatchlistPage() {
             />
           </section>
         )}
+
+        {/* populyar nümunələr — səhifəni doldurur, sürətli əlavə */}
+        <PopularAssets />
       </main>
       <Footer />
     </div>
+  );
+}
+
+/** Populyar aktivlər lenti — canlı qiymət + sparkline, bir kliklə izləməyə. */
+function PopularAssets() {
+  const { t } = useI18n();
+  const [details, setDetails] = useState<Record<string, AssetDetail>>({});
+
+  useEffect(() => {
+    let stop = false;
+    Promise.all(SAMPLE_KEYS.map((k) => getAssetDetail(k, "1mo"))).then((ds) => {
+      if (stop) return;
+      const map: Record<string, AssetDetail> = {};
+      SAMPLE_KEYS.forEach((k, i) => {
+        const d = ds[i];
+        if (d) map[k] = d;
+      });
+      setDetails(map);
+    });
+    return () => {
+      stop = true;
+    };
+  }, []);
+
+  return (
+    <section className="mt-10">
+      <h2 className="text-sm font-semibold">{t("watch.popular")}</h2>
+      <p className="mb-3 mt-1 text-xs text-muted">{t("watch.popularHint")}</p>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+        {SAMPLE_KEYS.map((k) => {
+          const d = details[k];
+          const q = d?.quote;
+          const closes = d?.history?.points.map((p) => p.close) ?? [];
+          return (
+            <div
+              key={k}
+              className="group rounded-card border border-border bg-surface p-3 transition-colors hover:border-accent/40"
+            >
+              <div className="flex items-center justify-between gap-2">
+                <Link href={`/asset/${k}`} className="min-w-0">
+                  <p className="truncate text-sm font-semibold">
+                    {q?.label ?? k.toUpperCase()}
+                  </p>
+                </Link>
+                <WatchButton assetKey={k} />
+              </div>
+              <Link href={`/asset/${k}`} className="mt-2 block">
+                {q ? (
+                  <>
+                    <p className="font-mono text-sm">{q.val}</p>
+                    <p
+                      className={`font-mono text-[11px] ${q.up ? "text-up" : "text-down"}`}
+                    >
+                      {q.chg}
+                    </p>
+                  </>
+                ) : (
+                  <div className="h-7 w-16 animate-pulse rounded bg-surface-hover" />
+                )}
+                {closes.length > 1 && (
+                  <div className="mt-2">
+                    <Sparkline values={closes} />
+                  </div>
+                )}
+              </Link>
+            </div>
+          );
+        })}
+      </div>
+    </section>
   );
 }

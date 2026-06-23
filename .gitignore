@@ -41,6 +41,12 @@ backend/app/analytics/_generated/
 # ---- Third-party agent skills (separate repo) ----
 skills/
 
+# ---- Claude Code lokal alət konfiqurasiyası (gizli saxla — promptlar/söhbət) ----
+.claude/
+CLAUDE.md
+CLAUDE.local.md
+AGENTS.md
+
 # test/build artifacts
 .playwright-mcp/
 *.tsbuildinfo

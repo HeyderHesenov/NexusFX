@@ -27,6 +27,7 @@ from app.agents.llm import (
 from app.analytics import correlation
 from app.core.config import settings
 from app.models import News
+from app.rag import embed, store
 
 LANG_NAMES = {"az": "Azerbaijani", "en": "English", "ru": "Russian", "tr": "Turkish"}
 
@@ -224,19 +225,118 @@ async def _detect_chart(question: str) -> tuple[dict | None, str]:
     return data, note
 
 
+# ---- RAG bilik bazası + marşrutlaşdırma ----
+
+_KB_STORE: store.VectorStore | None = None
+_KB_LOADED = False
+
+
+def _kb() -> store.VectorStore | None:
+    """knowledge.npz-i bir dəfə yükləyir (yoxdursa None)."""
+    global _KB_STORE, _KB_LOADED
+    if not _KB_LOADED:
+        _KB_STORE = store.load(embed.NPZ_PATH)
+        _KB_LOADED = True
+    return _KB_STORE
+
+
+def _parse_route(raw: str) -> str:
+    """Router JSON-unu yola çevirir. Səhvdə təhlükəsiz default: discussion."""
+    try:
+        path = (json.loads(raw or "{}").get("path") or "").strip().lower()
+    except Exception:  # noqa: BLE001
+        return "discussion"
+    return path if path in {"info", "chart", "discussion"} else "discussion"
+
+
+async def _route(question: str) -> str:
+    """GPT ilə sualı təsnif edir: info | chart | discussion."""
+    try:
+        resp = await openai_client().chat.completions.create(
+            model=settings.openai_model,
+            messages=[
+                {
+                    "role": "system",
+                    "content": "Classify a finance question into one path. "
+                    "'info' = definition/general explanation answerable from a "
+                    "knowledge base. 'chart' = asks to plot/compare two assets or "
+                    "show a graph. 'discussion' = analysis/opinion about news or an "
+                    "asset's outlook. Reply JSON: {\"path\":\"info|chart|discussion\"}.",
+                },
+                {"role": "user", "content": question},
+            ],
+            response_format={"type": "json_object"},
+            temperature=0,
+            max_tokens=20,
+        )
+        return _parse_route(resp.choices[0].message.content or "")
+    except Exception:  # noqa: BLE001
+        return "discussion"
+
+
+async def _kb_chunks(question: str, k: int = 5) -> list[dict]:
+    """Suala uyğun bilik chunk-larını qaytarır (store yoxdursa boş)."""
+    st = _kb()
+    if st is None:
+        return []
+    try:
+        q = await embed.embed_query(question)
+    except Exception:  # noqa: BLE001
+        return []
+    return [c for c, _ in st.search(q, k)]
+
+
+def _kb_context(chunks: list[dict]) -> str:
+    if not chunks:
+        return "(no knowledge base entries)"
+    return "\n".join(
+        f"- {c['title']}: {c['text'].split(chr(10), 1)[-1][:300]}" for c in chunks
+    )
+
+
+def _rag_answer_messages(question: str, lang: str, kb_context: str) -> list[dict]:
+    lang_name = LANG_NAMES.get(lang, "Azerbaijani")
+    return [
+        {"role": "system", "content": _GUARD},
+        {
+            "role": "user",
+            "content": f"Finance knowledge base entries:\n{kb_context}\n\n"
+            f"Question: {question}\n\nAnswer clearly in {lang_name} using the "
+            "entries above. If they don't cover it, answer from general finance "
+            "knowledge. Under ~150 words. Do NOT mention models or systems.",
+        },
+    ]
+
+
 async def answer(question: str, lang: str, session: AsyncSession) -> dict:
-    """Tam axın: yoxla → RAG → debate → sintez. {answer, refused} qaytarır."""
+    """Marşrut: info → tək-GPT RAG, chart/discussion → debate. {answer, refused}."""
     import asyncio
 
     lang = lang if lang in LANG_NAMES else "az"
     if not has_openai():
         return {"answer": _REFUSAL[lang], "refused": True}
-
     if not await _classify_finance(question):
         return {"answer": _REFUSAL[lang], "refused": True}
 
-    context = await _rag_context(session, question, lang)
-    _, corr_note = await _detect_chart(question)
+    path, kb = await asyncio.gather(_route(question), _kb_chunks(question))
+    kb_ctx = _kb_context(kb)
+
+    if path == "info":
+        resp = await openai_client().chat.completions.create(
+            model=settings.openai_model,
+            messages=_rag_answer_messages(question, lang, kb_ctx),
+            temperature=0.3,
+            max_tokens=400,
+        )
+        return {
+            "answer": resp.choices[0].message.content or _REFUSAL[lang],
+            "refused": False,
+        }
+
+    news_ctx, (_, corr_note) = await asyncio.gather(
+        _rag_context(session, question, lang), _detect_chart(question)
+    )
+    context = f"{news_ctx}\n\nKNOWLEDGE:\n{kb_ctx}"
     gpt_take, claude_take = await asyncio.gather(
         _gpt_pass(question, context), _claude_pass(question, context)
     )
@@ -248,8 +348,8 @@ async def answer_stream(question: str, lang: str, session: AsyncSession):
     """Axın variantı. NDJSON hadisələri verir:
     {type:chart,chart}, {type:delta,text}, {type:done,refused?}.
 
-    Debate arxa fonda tam gözlənilir (model "fikirləşir"), sonra yekun cavab
-    token-token axıdılır — ChatGPT/Claude tərzi yazılma effekti.
+    Router sualı təsnif edir: info → bilik bazasından tək-GPT cavab; chart/
+    discussion → arxa fonda debate (xəbər + bilik konteksti), sonra token axını.
     """
     import asyncio
 
@@ -260,19 +360,41 @@ async def answer_stream(question: str, lang: str, session: AsyncSession):
         yield {"type": "done", "refused": True}
         return
 
-    # RAG + qrafik aşkarlanması paralel.
-    context, (chart, corr_note) = await asyncio.gather(
+    path, kb = await asyncio.gather(_route(question), _kb_chunks(question))
+    kb_ctx = _kb_context(kb)
+
+    # info → bilik bazasından birbaşa tək-GPT cavab (debate yoxdur).
+    if path == "info":
+        stream = await openai_client().chat.completions.create(
+            model=settings.openai_model,
+            messages=_rag_answer_messages(question, lang, kb_ctx),
+            temperature=0.3,
+            max_tokens=400,
+            stream=True,
+        )
+        got = False
+        async for chunk in stream:
+            delta = chunk.choices[0].delta.content if chunk.choices else None
+            if delta:
+                got = True
+                yield {"type": "delta", "text": delta}
+        if not got:
+            yield {"type": "delta", "text": _REFUSAL[lang]}
+        yield {"type": "done"}
+        return
+
+    # chart / discussion → debate (xəbər + bilik konteksti).
+    news_ctx, (chart, corr_note) = await asyncio.gather(
         _rag_context(session, question, lang), _detect_chart(question)
     )
     if chart is not None:
         yield {"type": "chart", "chart": chart}
 
-    # Debate (arxa fon "düşüncəsi") — tam gözlənilir.
+    context = f"{news_ctx}\n\nKNOWLEDGE:\n{kb_ctx}"
     gpt_take, claude_take = await asyncio.gather(
         _gpt_pass(question, context), _claude_pass(question, context)
     )
 
-    # Yekun cavabı token-token axıt.
     stream = await openai_client().chat.completions.create(
         model=settings.openai_model,
         messages=_synth_messages(question, lang, gpt_take, claude_take, corr_note),

@@ -13,7 +13,7 @@ import type { AnalogResult } from "@/types";
 const EXAMPLES = ["Fed raises rates", "High CPI inflation", "BTC ETF inflows", "Oil supply cut"];
 
 export default function AnalogsPage() {
-  const { t } = useI18n();
+  const { t, lang } = useI18n();
   const [q, setQ] = useState("");
   const [data, setData] = useState<AnalogResult | null>(null);
   const [loading, setLoading] = useState(false);
@@ -26,7 +26,7 @@ export default function AnalogsPage() {
     setSearched(true);
     setLoading(true);
     setData(null);
-    const res = await searchAnalogs(text);
+    const res = await searchAnalogs(text, lang);
     setData(res);
     setLoading(false);
   }

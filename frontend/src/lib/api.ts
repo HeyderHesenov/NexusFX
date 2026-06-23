@@ -61,13 +61,14 @@ export async function getForecast(
   }
 }
 
-/** Bir xəbər üçün Tarixi Analoqlar (lazy — dil-müstəqil). */
+/** Bir xəbər üçün Tarixi Analoqlar (lazy — başlıqlar seçilmiş dildə). */
 export async function getNewsAnalogs(
   id: string,
+  lang: string,
   k = 5,
 ): Promise<import("@/types").AnalogResult> {
   try {
-    return await apiGet(`/news/${id}/analogs?k=${k}`);
+    return await apiGet(`/news/${id}/analogs?k=${k}&lang=${lang}`);
   } catch {
     return { ready: false };
   }
@@ -76,13 +77,14 @@ export async function getNewsAnalogs(
 /** Azad-mətn sorğusu üçün analoqlar (/analogs kəşf səhifəsi). */
 export async function searchAnalogs(
   q: string,
+  lang: string,
   category = "",
   k = 5,
 ): Promise<import("@/types").AnalogResult> {
   const query = q.trim();
   if (!query) return { ready: false };
   try {
-    const qs = new URLSearchParams({ q: query, category, k: String(k) });
+    const qs = new URLSearchParams({ q: query, category, k: String(k), lang });
     return await apiGet(`/analogs/search?${qs}`);
   } catch {
     return { ready: false };
@@ -92,10 +94,11 @@ export async function searchAnalogs(
 const _analogPrefetched = new Set<string>();
 
 /** Hover/fokus zamanı analoqları öncədən isidir (kNN indeks + qiymət keşi). */
-export function prefetchNewsAnalogs(id: string): void {
-  if (_analogPrefetched.has(id)) return;
-  _analogPrefetched.add(id);
-  void getNewsAnalogs(id).catch(() => _analogPrefetched.delete(id));
+export function prefetchNewsAnalogs(id: string, lang: string): void {
+  const key = `${id}:${lang}`;
+  if (_analogPrefetched.has(key)) return;
+  _analogPrefetched.add(key);
+  void getNewsAnalogs(id, lang).catch(() => _analogPrefetched.delete(key));
 }
 
 const _forecastPrefetched = new Set<string>();

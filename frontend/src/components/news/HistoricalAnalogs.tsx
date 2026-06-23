@@ -151,16 +151,17 @@ export function AnalogPanel({
 
 /** Xəbər səhifəsi üçün — saxlanmış embedding ilə analoqları lazy çəkir. */
 export function HistoricalAnalogs({ newsId }: { newsId: string }) {
+  const { lang } = useI18n();
   const [data, setData] = useState<AnalogResult | null>(null);
 
   useEffect(() => {
     let alive = true;
     setData(null);
-    getNewsAnalogs(newsId).then((d) => alive && setData(d));
+    getNewsAnalogs(newsId, lang).then((d) => alive && setData(d));
     return () => {
       alive = false;
     };
-  }, [newsId]);
+  }, [newsId, lang]);
 
   return <AnalogPanel data={data} loading={data === null} />;
 }

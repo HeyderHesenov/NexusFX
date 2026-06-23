@@ -27,6 +27,7 @@ from app.models import News
 from app.rag import store
 
 WINDOWS = (1, 5, 30)
+LANGS = ("az", "en", "ru", "tr")
 _MIN_AGE_DAYS = 35  # 30g nəticəsi olsun deyə bu qədər köhnə analoqlar
 _DUP_SIM = 0.985  # bundan yüksək oxşarlıq ~ eyni xəbər → at
 
@@ -55,7 +56,14 @@ async def _build_index() -> store.VectorStore | None:
     async with AsyncSessionLocal() as s:
         rows = (
             await s.execute(
-                select(News.id, News.title, News.published_at, News.category, News.embedding)
+                select(
+                    News.id,
+                    News.title,
+                    News.published_at,
+                    News.category,
+                    News.translations,
+                    News.embedding,
+                )
                 .where(News.embedding.is_not(None))
                 .where(News.published_at.is_not(None))
                 .where(News.published_at <= cutoff_dt)
@@ -63,16 +71,24 @@ async def _build_index() -> store.VectorStore | None:
         ).all()
     if not rows:
         return None
-    meta = [
-        {
-            "id": r[0],
-            "title": r[1],
-            "published_at": r[2].date().isoformat(),
-            "category": r[3],
+    meta = []
+    for r in rows:
+        tr = r[4] or {}
+        titles = {
+            l: (tr.get(l) or {}).get("title")
+            for l in LANGS
+            if (tr.get(l) or {}).get("title")
         }
-        for r in rows
-    ]
-    vectors = np.array([r[4] for r in rows], dtype=np.float32)
+        meta.append(
+            {
+                "id": r[0],
+                "title": r[1],
+                "titles": titles,  # dil → lokallaşmış başlıq (varsa)
+                "published_at": r[2].date().isoformat(),
+                "category": r[3],
+            }
+        )
+    vectors = np.array([r[5] for r in rows], dtype=np.float32)
     return store.VectorStore(meta, vectors)
 
 
@@ -166,6 +182,7 @@ async def analogs_for(
     category: str,
     exclude_id: int | None = None,
     k: int = 5,
+    lang: str = "en",
 ) -> dict:
     """Bənzər keçmiş hadisələr + hədəf aktivin onlardan sonrakı hərəkəti."""
     st = await _index()
@@ -189,7 +206,7 @@ async def analogs_for(
         events.append(
             {
                 "id": meta["id"],
-                "title": meta["title"],
+                "title": meta.get("titles", {}).get(lang) or meta["title"],
                 "publishedAt": meta["published_at"],
                 "similarity": round(float(score), 3),
                 "moves": moves,
@@ -207,7 +224,7 @@ async def analogs_for(
     }
 
 
-async def analogs_for_news(news: News, k: int = 5) -> dict:
+async def analogs_for_news(news: News, k: int = 5, lang: str = "en") -> dict:
     """Saxlanmış embedding ilə bir xəbər üçün analoqlar."""
     if not news.embedding:
         return {"ready": False}
@@ -218,4 +235,5 @@ async def analogs_for_news(news: News, k: int = 5) -> dict:
         str(news.category),
         exclude_id=news.id,
         k=k,
+        lang=lang,
     )

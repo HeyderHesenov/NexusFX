@@ -165,18 +165,20 @@ async def get_translated_content(
 async def get_analogs(
     news_id: int,
     k: int = Query(5, ge=1, le=12),
+    lang: str = Query("az"),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Tarixi Analoqlar — bənzər keçmiş hadisələr + aktivin sonrakı hərəkəti.
 
-    Dil-müstəqil (rəqəm + orijinal başlıq); GPT çağırışı yoxdur.
+    Başlıqlar seçilmiş dilə lokallaşır; rəqəmlər dil-müstəqil. GPT çağırışı yoxdur.
     """
     from app.analytics import analog
 
+    lang = lang if lang in _LANGS else "az"
     news = await db.get(News, news_id)
     if news is None:
         raise HTTPException(status_code=404, detail="Xəbər tapılmadı")
-    return await analog.analogs_for_news(news, k=k)
+    return await analog.analogs_for_news(news, k=k, lang=lang)
 
 
 @router.get("/{news_id}/forecast")

@@ -290,15 +290,34 @@ export async function getCorrelationExplain(
   }
 }
 
-/** Bütün aktivlər — qiymət + 24s dəyişim + sparkline (CMC tərzi cədvəl). */
-export async function getAssetsOverview(): Promise<
-  import("@/types").AssetOverview[]
-> {
-  try {
-    return await apiGet(`/assets/overview`);
-  } catch {
-    return [];
+// Overview klient keşi — markets/assets/watchlist eyni datanı paylaşır.
+// SWR backend onsuz da sürətlidir; bu, təkrar şəbəkə gediş-gəlişini və paralel
+// dublikat sorğuları (in-flight dedupe) aradan qaldırır → keçidlər ani olur.
+let _ovCache: { ts: number; data: import("@/types").AssetOverview[] } | null = null;
+let _ovInflight: Promise<import("@/types").AssetOverview[]> | null = null;
+const _OV_TTL = 30_000;
+
+/** Bütün aktivlər — qiymət + 24s dəyişim + sparkline (CMC tərzi cədvəl).
+ *
+ * `force=true` keşi atlayıb təzə dəyər çəkir (interval refresh üçün).
+ */
+export async function getAssetsOverview(
+  force = false,
+): Promise<import("@/types").AssetOverview[]> {
+  if (!force && _ovCache && Date.now() - _ovCache.ts < _OV_TTL) {
+    return _ovCache.data;
   }
+  if (_ovInflight) return _ovInflight;
+  _ovInflight = apiGet<import("@/types").AssetOverview[]>(`/assets/overview`)
+    .then((d) => {
+      _ovCache = { ts: Date.now(), data: d };
+      return d;
+    })
+    .catch(() => _ovCache?.data ?? [])
+    .finally(() => {
+      _ovInflight = null;
+    });
+  return _ovInflight;
 }
 
 /** Cari qiymət/həcm anomaliyaları (5 dəq keş; refresh məcburi yeniləyir). */

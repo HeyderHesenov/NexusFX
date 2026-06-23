@@ -13,10 +13,10 @@ import {
   AssetTableHead,
   SkeletonRow,
 } from "@/components/assets/AssetTable";
-import { getAssets, getAssetDetail, getAssetsOverview } from "@/lib/api";
+import { getAssetDetail, getAssetsOverview } from "@/lib/api";
 import { toggleWatch, useWatchlist } from "@/lib/watchlist";
 import { useI18n } from "@/lib/i18n";
-import type { Asset, AssetDetail, AssetOverview } from "@/types";
+import type { Asset, AssetOverview } from "@/types";
 
 /**
  * Kripto sektor xəritəsi (baza simvolu → sektor). Binance top-50 dinamik
@@ -95,37 +95,76 @@ const SAMPLE_KEYS = [
   "dji",
 ];
 
+/** İzlənən kart üçün lazım olan minimal forma — overview və ya fallback-dan. */
+type CardData = { label: string; val: string; chg: string; up: boolean; spark: number[] };
+
 export default function WatchlistPage() {
   const { t } = useI18n();
   const watched = useWatchlist();
-  const [registry, setRegistry] = useState<Asset[]>([]);
-  const [details, setDetails] = useState<Record<string, AssetDetail>>({});
+  // Tək mənbə: bütün aktivlərin overview-i (keşli + prewarmed). İzlənən kartlar,
+  // picker və populyar cədvəl hamısı bundan qidalanır — per-asset sorğu yox.
+  const [overview, setOverview] = useState<AssetOverview[]>([]);
+  // Overview-də olmayan nadir açarlar üçün (top-50 xarici coin) fallback.
+  const [fallback, setFallback] = useState<Record<string, CardData>>({});
 
   useEffect(() => {
-    getAssets().then(setRegistry);
-  }, []);
-
-  useEffect(() => {
-    if (watched.length === 0) return;
     let stop = false;
-    async function load() {
-      const ds = await Promise.all(watched.map((k) => getAssetDetail(k, "1mo")));
-      if (stop) return;
-      const map: Record<string, AssetDetail> = {};
-      watched.forEach((k, i) => {
-        const d = ds[i];
-        if (d) map[k] = d;
+    const load = () =>
+      getAssetsOverview(true).then((d) => {
+        if (!stop) setOverview(d);
       });
-      setDetails(map);
-    }
     load();
     const id = window.setInterval(load, 60_000);
     return () => {
       stop = true;
       window.clearInterval(id);
     };
-  }, [watched]);
+  }, []);
 
+  const byKey = new Map(overview.map((r) => [r.key, r]));
+
+  // Yalnız overview-də OLMAYAN izlənən açarlar üçün ayrıca detal çək (nadir hal).
+  useEffect(() => {
+    if (overview.length === 0) return;
+    const missing = watched.filter((k) => !byKey.has(k) && !fallback[k]);
+    if (missing.length === 0) return;
+    let stop = false;
+    Promise.all(missing.map((k) => getAssetDetail(k, "1mo"))).then((ds) => {
+      if (stop) return;
+      const add: Record<string, CardData> = {};
+      missing.forEach((k, i) => {
+        const d = ds[i];
+        if (d?.quote) {
+          add[k] = {
+            label: d.quote.label,
+            val: d.quote.val,
+            chg: d.quote.chg,
+            up: d.quote.up,
+            spark: d.history?.points.map((p) => p.close) ?? [],
+          };
+        }
+      });
+      if (Object.keys(add).length) setFallback((f) => ({ ...f, ...add }));
+    });
+    return () => {
+      stop = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [watched, overview]);
+
+  const cardFor = (k: string): CardData | undefined => {
+    const r = byKey.get(k);
+    if (r) return { label: r.label, val: r.val, chg: r.chg, up: r.up, spark: r.spark };
+    return fallback[k];
+  };
+
+  // Picker reyestri overview-dən (AssetPicker yalnız key/label/type işlədir).
+  const registry: Asset[] = overview.map((r) => ({
+    key: r.key,
+    label: r.label,
+    sym: r.key,
+    type: r.type,
+  }));
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -145,9 +184,7 @@ export default function WatchlistPage() {
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {watched.map((k) => {
-              const d = details[k];
-              const q = d?.quote;
-              const closes = d?.history?.points.map((p) => p.close) ?? [];
+              const c = cardFor(k);
               return (
                 <div
                   key={k}
@@ -156,7 +193,7 @@ export default function WatchlistPage() {
                   <div className="flex items-center justify-between gap-2">
                     <Link href={`/asset/${k}`} className="min-w-0">
                       <p className="truncate font-semibold">
-                        {q?.label ?? k.replace(/^c_/, "").toUpperCase()}
+                        {c?.label ?? k.replace(/^c_/, "").toUpperCase()}
                       </p>
                     </Link>
                     <WatchButton assetKey={k} />
@@ -166,20 +203,20 @@ export default function WatchlistPage() {
                     className="mt-3 flex items-end justify-between gap-3"
                   >
                     <div>
-                      {q ? (
+                      {c ? (
                         <>
-                          <p className="font-mono text-base">{q.val}</p>
+                          <p className="font-mono text-base">{c.val}</p>
                           <p
-                            className={`font-mono text-xs ${q.up ? "text-up" : "text-down"}`}
+                            className={`font-mono text-xs ${c.up ? "text-up" : "text-down"}`}
                           >
-                            {q.chg}
+                            {c.chg}
                           </p>
                         </>
                       ) : (
                         <div className="h-8 w-20 animate-pulse rounded bg-surface-hover" />
                       )}
                     </div>
-                    {closes.length > 1 && <Sparkline values={closes} />}
+                    {c && c.spark.length > 1 && <Sparkline values={c.spark} />}
                   </Link>
                 </div>
               );
@@ -199,30 +236,20 @@ export default function WatchlistPage() {
           </section>
         )}
 
-        {/* populyar nümunələr — səhifəni doldurur, sürətli əlavə */}
-        <PopularAssets />
+        {/* populyar nümunələr — eyni overview datası (əlavə sorğu yox) */}
+        <PopularAssets all={overview} />
       </main>
       <Footer />
     </div>
   );
 }
 
-/** Populyar aktivlər — CoinMarketCap üslublu cədvəl + açılan tam kateqoriyalı siyahı. */
-function PopularAssets() {
+/** Populyar aktivlər — CoinMarketCap üslublu cədvəl + açılan tam kateqoriyalı siyahı.
+ * Data parent-dən gəlir (paylaşılan overview) — öz sorğusu yoxdur. */
+function PopularAssets({ all }: { all: AssetOverview[] }) {
   const { t } = useI18n();
-  const [all, setAll] = useState<AssetOverview[]>([]);
   const [activeSub, setActiveSub] = useState("crypto.all");
   const [openGroup, setOpenGroup] = useState("crypto");
-
-  useEffect(() => {
-    let stop = false;
-    getAssetsOverview().then((d) => {
-      if (!stop) setAll(d);
-    });
-    return () => {
-      stop = true;
-    };
-  }, []);
 
   const [expanded, setExpanded] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);

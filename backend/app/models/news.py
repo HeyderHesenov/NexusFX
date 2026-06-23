@@ -54,6 +54,9 @@ class News(Base, TimestampMixin):
     sentiment: Mapped[float | None] = mapped_column(Float)  # -1..1
     impact_score: Mapped[float | None] = mapped_column(Float)  # 0..100
     is_processed: Mapped[bool] = mapped_column(default=False, nullable=False)
+    # Tarixi Analoq motoru üçün 1536-ölçülü embedding (text-embedding-3-small).
+    # Backfill + scheduler hook ilə doldurulur; kNN axtarışında işlədilir.
+    embedding: Mapped[list[float] | None] = mapped_column(JSONB)
 
     # ---- Deduplikasiya ----
     # url + başlıqdan çıxarılan unikal hash (Addım 3-də doldurulur)

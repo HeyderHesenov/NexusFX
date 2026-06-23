@@ -18,6 +18,7 @@ const COLUMNS: Col[] = [
     titleKey: "navg.analysis",
     links: [
       { href: "/anomalies", labelKey: "anom.nav" },
+      { href: "/analogs", labelKey: "analog.nav" },
       { href: "/compare", labelKey: "nav.compare" },
       { href: "/correlation", labelKey: "corr.nav" },
       { href: "/powerlaw", labelKey: "pl.nav" },

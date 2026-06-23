@@ -9,6 +9,7 @@ import { useI18n } from "@/lib/i18n";
 import { formatDateTime, localizedNews } from "@/lib/utils";
 import { NewsImage } from "@/components/news/NewsImage";
 import { AIForecast } from "@/components/news/AIForecast";
+import { HistoricalAnalogs } from "@/components/news/HistoricalAnalogs";
 import { OriginalText } from "@/components/news/OriginalText";
 import type { NewsItem, Category } from "@/types";
 
@@ -137,6 +138,9 @@ export default function NewsDetailPage({
 
                   {/* AI bazar proqnozu — lazy yüklənir */}
                   <AIForecast id={news.id} />
+
+                  {/* Tarixi analoqlar — bənzər keçmiş hadisələr + nəticə */}
+                  <HistoricalAnalogs newsId={news.id} />
                 </>
               );
             })()}

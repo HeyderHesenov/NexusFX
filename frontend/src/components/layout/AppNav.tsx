@@ -10,6 +10,7 @@ import {
   ChevronDown,
   Coins,
   GitCompareArrows,
+  History,
   LogOut,
   Newspaper,
   Radar,
@@ -48,6 +49,7 @@ const NAV: NavItem[] = [
     labelKey: "navg.analysis",
     items: [
       { href: "/anomalies", labelKey: "anom.nav", icon: Activity },
+      { href: "/analogs", labelKey: "analog.nav", icon: History },
       { href: "/compare", labelKey: "nav.compare", icon: GitCompareArrows },
       { href: "/correlation", labelKey: "corr.nav", icon: Spline },
       { href: "/powerlaw", labelKey: "pl.nav", icon: TrendingUp },
@@ -62,6 +64,7 @@ const ALL_LEAVES: Leaf[] = [
   { href: "/markets", labelKey: "nav.markets", icon: CalendarDays },
   { href: "/watchlist", labelKey: "nav.watchlist", icon: Star },
   { href: "/anomalies", labelKey: "anom.nav", icon: Activity },
+  { href: "/analogs", labelKey: "analog.nav", icon: History },
   { href: "/compare", labelKey: "nav.compare", icon: GitCompareArrows },
   { href: "/correlation", labelKey: "corr.nav", icon: Spline },
   { href: "/powerlaw", labelKey: "pl.nav", icon: TrendingUp },

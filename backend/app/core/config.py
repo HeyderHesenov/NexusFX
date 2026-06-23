@@ -43,7 +43,10 @@ class Settings(BaseSettings):
     # Pulsuz maşın tərcüməsi (Google free endpoint) — xəbərləri 4 dilə
     # SADİQ tərcümə edir (GPT kimi yenidən YAZMIR). Xərcsiz → default aktiv.
     free_translate_enabled: bool = True
-    free_translate_batch: int = 12
+    # Saatlıq backfill ölçüsü. Yeni ingestion ilə ayaqlaşmaq + backlog yığılmasın
+    # deyə 30. Daha yüksək Google free endpoint-i rate-limit edib ingiliscə
+    # "zəhərlənmə"yə (xəta→orijinal mətn saxlanır) gətirə bilər.
+    free_translate_batch: int = 30
 
     # ---- Web Push (VAPID) ----
     vapid_private_key: str = ""

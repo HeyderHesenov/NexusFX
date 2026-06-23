@@ -4,12 +4,16 @@
 > Maliyyə kəşfiyyat platforması. Lokal kurs final layihəsi.
 
 ## Nə edir
-- Maliyyə xəbərlərini toplayır (RSS / API / scraping).
-- Azərbaycancaya tərcümə + xülasə + tag (AI).
-- Forex / US Markets / Crypto kateqoriyalara ayırır.
-- Modern dark UI-də göstərir (Next.js + Tailwind).
-- İçəridə AI Financial Advisor chat (GPT + Claude birgə).
-- İstənilən pair üçün korrelyasiya + chart (Yahoo Finance).
+- Maliyyə xəbərlərini toplayır (RSS / API / scraping), dedup edir.
+- 4 dilə tərcümə (AZ/EN/RU/TR) + xülasə + sentiment + impact bal (pulsuz heuristik).
+- Forex / US Markets / Crypto / Commodities kateqoriyalara ayırır.
+- Modern dark + light UI (Next.js + Tailwind), çoxdilli, peşəkar footer/nav.
+- AI Financial Advisor chat (GPT + Claude birgə), token-token axın + inline qrafiklər.
+- Korrelyasiya matrisi + cüt qrafiki + AI izah (Yahoo Finance).
+- Anomaliya radarı (robust z-score, σ-gauge), web push bildirişləri.
+- Power Law modeli (BTC), bazar təqvimi, izləmə, siqnallar, müqayisə, asset səhifəsi.
+- **Radar — kəşf rejimi**: bilinməyən small-cap fürsətlər (kripto/səhm/əmtəə),
+  fürsət balı + market cap + opensource link + on-demand AI izah.
 
 ## Texnologiya
 | Qat | Stack |
@@ -57,14 +61,29 @@ NexusIQ/
 ## Quraşdırma
 Bax: [`docs/SETUP.md`](docs/SETUP.md)
 
-## Status — addım-addım build
+## Status — addım-addım build ✅ (10/10 tamamlandı)
 - [x] Addım 1 — Layihə skeleti + struktur
-- [ ] Addım 2 — DB sxema + modellər
-- [ ] Addım 3 — RSS ingestion + dedup
-- [ ] Addım 4 — AI pipeline (tərcümə/xülasə/tag)
-- [ ] Addım 5 — Frontend tablar + xəbər kartları
-- [ ] Addım 6 — Tam xəbər səhifəsi
-- [ ] Addım 7 — AI chat bot (GPT + Claude)
-- [ ] Addım 8 — Korrelyasiya modulu + chartlar
-- [ ] Addım 9 — Bonus (sentiment, impact, bookmark)
-- [ ] Addım 10 — Cron planlayıcı
+- [x] Addım 2 — DB sxema + modellər
+- [x] Addım 3 — RSS ingestion + dedup
+- [x] Addım 4 — AI pipeline (tərcümə/xülasə/tag)
+- [x] Addım 5 — Frontend tablar + xəbər kartları
+- [x] Addım 6 — Tam xəbər səhifəsi
+- [x] Addım 7 — AI chat bot (GPT + Claude)
+- [x] Addım 8 — Korrelyasiya modulu + chartlar
+- [x] Addım 9 — Bonus (sentiment, impact, bookmark)
+- [x] Addım 10 — Cron planlayıcı (APScheduler, saatlıq)
+
+## Əlavə xüsusiyyətlər (v2 — kursdan sonra genişləndirmə)
+- [x] Pulsuz tərcümə (Google gtx) — 4 dil, GPT xərci olmadan
+- [x] Web Push bildirişləri — Service Worker + VAPID + NotifyBell
+- [x] AI chat token-token axın (NDJSON) + inline korrelyasiya qrafikləri
+- [x] Anomaliya radarı — robust z-score (qiymət+həcm), σ-gauge UI
+- [x] Power Law modeli (BTC, 20 illik proyeksiya)
+- [x] Bazar təqvimi, asset overview (CMC üslublu), asset detal səhifəsi
+- [x] İzləmə (watchlist), qiymət siqnalları, asset müqayisəsi
+- [x] **Radar — kəşf rejimi**: DefiLlama gəlir ∩ CoinGecko MC \$1–50M (kripto),
+      curated tematik small-cap səhm/əmtəə (MC ≤ \$1B), fürsət balı, detal səhifəsi
+- [x] Çoxdilli interfeys (AZ/EN/RU/TR) + açıq/qaranlıq tema
+- [x] Peşəkar footer + ikonlu dropdown naviqasiya
+- [x] Performans: SWR keş + startup prewarm (endpoint-lər isti ~1ms),
+      watchlist tək-overview optimallaşması, route prewarm (keçid donması yox)

@@ -27,7 +27,7 @@
 | Analitika | pandas, yfinance, scipy, plotly |
 | Planlayıcı | APScheduler (saatlıq + hadisə əsaslı) |
 
-## Arxitektura (yüksək səviyyə)
+## Arxitektura
 ```
 RSS/API ─► NewsCollectorAgent ─► dedup/normalize ─► PostgreSQL
                                                         │

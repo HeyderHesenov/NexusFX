@@ -75,7 +75,7 @@ Bax: [`docs/SETUP.md`](docs/SETUP.md)
 - [x] Addım 9 — Bonus (sentiment, impact, bookmark)
 - [x] Addım 10 — Cron planlayıcı (APScheduler, saatlıq)
 
-## Əlavə xüsusiyyətlər (v2 — kursdan sonra genişləndirmə)
+## Əlavə xüsusiyyətlər (v2 — Bonus Updates)
 - [x] Pulsuz tərcümə (Google gtx) — 4 dil, GPT xərci olmadan
 - [x] Web Push bildirişləri — Service Worker + VAPID + NotifyBell
 - [x] AI chat token-token axın (NDJSON) + inline korrelyasiya qrafikləri

@@ -17,7 +17,7 @@ logger = logging.getLogger("nexusiq.startup")
 
 async def _prewarm() -> None:
     """Ağır analitik keşləri arxa planda isidir — ilk istifadəçi gözləməsin."""
-    from app.analytics import anomaly, assets, correlation, market
+    from app.analytics import anomaly, assets, correlation, market, radar
 
     tasks = {
         "market": market.get_quotes(),
@@ -26,6 +26,7 @@ async def _prewarm() -> None:
         "overview": assets.get_overview(),
         "correlation": correlation.get_matrix(90),
         "anomaly": anomaly.scan_all(),
+        "radar": radar.get_radar("crypto"),
     }
     results = await asyncio.gather(*tasks.values(), return_exceptions=True)
     warmed = [n for n, r in zip(tasks, results) if not isinstance(r, Exception)]

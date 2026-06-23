@@ -362,6 +362,32 @@ export async function getAssetDetail(
   }
 }
 
+/** Radar — kateqoriya üzrə fürsət balı ilə sıralanmış aktivlər. */
+export async function getRadar(
+  category: string,
+): Promise<import("@/types").RadarItem[]> {
+  try {
+    return await apiGet(`/radar?category=${category}`);
+  } catch {
+    return [];
+  }
+}
+
+/** Bir radar aktivi üçün on-demand AI izahı (yalnız istəklə — API qənaəti). */
+export async function getRadarExplain(
+  key: string,
+  lang: string,
+): Promise<string | null> {
+  try {
+    const d = await apiGet<{ ready: boolean; text: string }>(
+      `/radar/${key}/explain?lang=${lang}`,
+    );
+    return d.ready ? d.text : null;
+  } catch {
+    return null;
+  }
+}
+
 /** Lider coinin Power Law (güc qanunu) modeli. */
 export async function getPowerLaw(
   asset = "btc",

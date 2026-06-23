@@ -159,6 +159,42 @@ export interface AssetOverview {
   spark: number[];
 }
 
+export type RadarCategory = "crypto" | "stock" | "commodity" | "forex";
+
+export interface RadarNews {
+  id: string;
+  title: string;
+  titleAz: string | null;
+  url: string;
+  image: string | null;
+  impactScore: number | null;
+  sentiment: number | null;
+  publishedAt: string | null;
+}
+
+export interface RadarBreakdown {
+  momentum: number;
+  sentiment: number;
+  impact: number;
+  anomaly: number;
+}
+
+export interface RadarItem {
+  key: string;
+  label: string;
+  type: AssetType;
+  val: string;
+  price: number;
+  chg: string;
+  chgPct: number;
+  up: boolean;
+  spark: number[];
+  score: number;
+  breakdown: RadarBreakdown;
+  anomaly: AnomalySeverity | null;
+  news: RadarNews[];
+}
+
 export type AnomalySeverity = "medium" | "high" | "extreme";
 
 export interface Anomaly {

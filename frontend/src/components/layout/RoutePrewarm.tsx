@@ -17,6 +17,7 @@ import { useRouter } from "next/navigation";
  */
 const ROUTES = [
   "/",
+  "/radar",
   "/assets",
   "/markets",
   "/watchlist",

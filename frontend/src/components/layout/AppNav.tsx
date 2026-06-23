@@ -12,6 +12,7 @@ import {
   GitCompareArrows,
   LogOut,
   Newspaper,
+  Radar,
   Spline,
   Star,
   Target,
@@ -32,6 +33,7 @@ type NavItem =
 
 const NAV: NavItem[] = [
   { kind: "link", href: "/", labelKey: "nav.news", icon: Newspaper },
+  { kind: "link", href: "/radar", labelKey: "nav.radar", icon: Radar },
   {
     kind: "group",
     labelKey: "navg.market",
@@ -55,6 +57,7 @@ const NAV: NavItem[] = [
 
 const ALL_LEAVES: Leaf[] = [
   { href: "/", labelKey: "nav.news", icon: Newspaper },
+  { href: "/radar", labelKey: "nav.radar", icon: Radar },
   { href: "/assets", labelKey: "nav.assets", icon: Coins },
   { href: "/markets", labelKey: "nav.markets", icon: CalendarDays },
   { href: "/watchlist", labelKey: "nav.watchlist", icon: Star },

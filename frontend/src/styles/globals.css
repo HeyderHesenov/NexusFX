@@ -287,6 +287,39 @@ body {
   animation: mb-area 1s 0.5s ease-out both;
 }
 
+/* Route keçid skeleti — shimmer dolğu + üst skan zolağı.
+   App Router-də loading.tsx fallback-ı: klik anında dərhal görünür ki,
+   köhnə səhifə donmasın. */
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--surface) 25%,
+    var(--surface-hover) 50%,
+    var(--surface) 75%
+  );
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.4s ease-in-out infinite;
+}
+@keyframes route-scan {
+  0% {
+    left: -35%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+.route-scan {
+  animation: route-scan 1s ease-in-out infinite;
+}
+
 /* Live pulse line — sonsuz sola axın */
 @keyframes line-scroll {
   from {
@@ -339,7 +372,9 @@ body {
   .fade-out,
   .glow-breathe,
   .phase-fade,
-  .pulse-line-track {
+  .pulse-line-track,
+  .skeleton,
+  .route-scan {
     animation: none !important;
     transition: none !important;
   }

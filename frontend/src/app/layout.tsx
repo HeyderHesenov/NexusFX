@@ -5,6 +5,7 @@ import { AuthGate } from "@/components/auth/AuthGate";
 import { LanguageProvider } from "@/lib/i18n";
 import { ThemeProvider } from "@/lib/theme";
 import { AlertWatcher } from "@/components/alerts/AlertWatcher";
+import { RoutePrewarm } from "@/components/layout/RoutePrewarm";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -56,6 +57,7 @@ export default function RootLayout({
           <LanguageProvider>
             <AuthGate>{children}</AuthGate>
             <AlertWatcher />
+            <RoutePrewarm />
           </LanguageProvider>
         </ThemeProvider>
       </body>

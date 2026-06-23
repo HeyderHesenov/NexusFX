@@ -50,3 +50,7 @@ AGENTS.md
 # test/build artifacts
 .playwright-mcp/
 *.tsbuildinfo
+
+# Müvəqqəti skrinşot artefaktları
+/l-*.png
+/light-*.png

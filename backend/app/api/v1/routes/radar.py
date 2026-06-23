@@ -31,10 +31,6 @@ async def radar_explain(key: str, lang: str = Query("az")) -> dict:
         items = await radar.get_radar(cat)
         item = next((i for i in items if i["key"] == key), None)
         if item:
-            titles = [n.get("titleAz") or n.get("title") for n in item.get("news", [])]
-            text = await radar_ai.explain(
-                key, item["label"], cat, item["score"],
-                item.get("breakdown", {}), [t for t in titles if t], lang,
-            )
+            text = await radar_ai.explain(item, lang)
             return {"ready": text is not None, "text": text or ""}
     raise HTTPException(status_code=404, detail="Aktiv radarda tapılmadı")

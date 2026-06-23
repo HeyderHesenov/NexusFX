@@ -1,8 +1,8 @@
-"""RadarAI — bir aktivin niyə radarda olduğunu GPT ilə qısaca izah edir.
+"""RadarAI — kəşf edilmiş aktivin niyə perspektivli olduğunu GPT ilə izah edir.
 
-On-demand (yalnız istifadəçi "AI izah" düyməsinə basanda) — API qənaəti.
-Tək GPT çağırışı → seçilmiş dildə qısa, neytral, təhsil xarakterli izah.
-Nəticə (key, lang) üzrə yaddaşda keşlənir (1 saat) — təkrar xərc yox.
+On-demand (yalnız "AI izah" düyməsi) — API qənaəti. Tək GPT çağırışı → seçilmiş
+dildə qısa, neytral izah (MC, gəlir/tema, momentum əsasında).
+Nəticə (key, lang) üzrə yaddaşda keşlənir (1 saat).
 """
 from __future__ import annotations
 
@@ -13,40 +13,49 @@ from app.core.config import settings
 _LANG_NAMES = {"az": "Azerbaijani", "en": "English", "ru": "Russian", "tr": "Turkish"}
 
 _SYSTEM = (
-    "You are a markets analyst for the NexusIQ terminal. Given an asset and its "
-    "opportunity-score breakdown, explain in 2-3 short sentences why it currently "
-    "stands out. Stay neutral, educational, give NO financial advice and invent no facts."
+    "You are a markets analyst for the NexusIQ terminal. You explain why a small, "
+    "under-the-radar asset (micro-cap crypto or small-cap stock) currently stands "
+    "out as a potential opportunity. 2-3 short sentences. Stay neutral and "
+    "educational, give NO financial advice, invent no facts beyond the data given."
 )
 
-_TTL = 3600.0  # 1 saat
+_TTL = 3600.0
 _cache: dict[tuple[str, str], tuple[float, str]] = {}
 
 
-def _prompt(label: str, category: str, score: float,
-            breakdown: dict, news_titles: list[str], lang: str) -> str:
+def _prompt(item: dict, lang: str) -> str:
     lname = _LANG_NAMES.get(lang, "English")
-    b = breakdown or {}
-    heads = "\n".join(f"- {t}" for t in news_titles[:3]) or "(no recent headlines)"
-    return (
-        f"Write entirely in {lname}. 2-3 short sentences, no preamble.\n"
-        f"ASSET: {label} ({category})\n"
-        f"OPPORTUNITY SCORE: {score}/100\n"
-        f"COMPONENTS (0-100): momentum={b.get('momentum')}, "
-        f"sentiment={b.get('sentiment')}, impact={b.get('impact')}, "
-        f"anomaly={b.get('anomaly')}\n"
-        f"RECENT HEADLINES:\n{heads}\n\n"
-        "Explain what is driving the score (e.g. strong momentum, positive news "
-        "sentiment, a volatility spike) in plain terms."
-    )
+    typ = item.get("type")
+    lines = [
+        f"Write entirely in {lname}. 2-3 short sentences, no preamble.",
+        f"ASSET: {item.get('name') or item.get('label')} ({item.get('label')})",
+        f"TYPE: {typ}",
+        f"MARKET CAP: {item.get('mcapFmt')}",
+        f"OPPORTUNITY SCORE: {item.get('score')}/100",
+        f"24H CHANGE: {item.get('chg')}",
+    ]
+    if typ == "crypto":
+        lines.append(f"CATEGORY: {item.get('category')}")
+        lines.append(f"30-DAY PROTOCOL REVENUE: {item.get('revenueFmt')}")
+        lines.append(
+            "Explain why a revenue-generating micro-cap protocol at this size "
+            "could be an early opportunity (real usage, fees, growth)."
+        )
+    else:
+        lines.append(f"THEME: {item.get('theme')}")
+        lines.append(
+            "Explain the thesis: how this theme (e.g. AI demand → energy/chips) "
+            "could drive this small-cap, and what the price trend suggests."
+        )
+    return "\n".join(lines)
 
 
-async def explain(key: str, label: str, category: str, score: float,
-                  breakdown: dict, news_titles: list[str], lang: str) -> str | None:
-    """Aktiv üçün qısa AI izahı (keşli). Xəta/açar yoxdursa None."""
+async def explain(item: dict, lang: str) -> str | None:
+    """Kəşf item-i üçün qısa AI izahı (keşli). Xəta/açar yoxdursa None."""
     from app.agents.llm import has_openai, openai_client
 
     lang = lang if lang in _LANG_NAMES else "az"
-    ck = (key, lang)
+    ck = (item.get("key", ""), lang)
     hit = _cache.get(ck)
     if hit and time.time() - hit[0] < _TTL:
         return hit[1]
@@ -57,11 +66,10 @@ async def explain(key: str, label: str, category: str, score: float,
             model=settings.openai_model,
             messages=[
                 {"role": "system", "content": _SYSTEM},
-                {"role": "user", "content": _prompt(
-                    label, category, score, breakdown, news_titles, lang)},
+                {"role": "user", "content": _prompt(item, lang)},
             ],
             temperature=0.5,
-            max_tokens=220,
+            max_tokens=240,
         )
         text = (resp.choices[0].message.content or "").strip()
     except Exception:  # noqa: BLE001

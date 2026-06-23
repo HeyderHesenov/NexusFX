@@ -26,7 +26,9 @@ async def _prewarm() -> None:
         "overview": assets.get_overview(),
         "correlation": correlation.get_matrix(90),
         "anomaly": anomaly.scan_all(),
-        "radar": radar.get_radar("crypto"),
+        "radar_crypto": radar.get_radar("crypto"),
+        "radar_stock": radar.get_radar("stock"),
+        "radar_commodity": radar.get_radar("commodity"),
     }
     results = await asyncio.gather(*tasks.values(), return_exceptions=True)
     warmed = [n for n, r in zip(tasks, results) if not isinstance(r, Exception)]

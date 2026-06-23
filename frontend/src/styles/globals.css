@@ -308,17 +308,6 @@ body {
   background-size: 200% 100%;
   animation: skeleton-shimmer 1.4s ease-in-out infinite;
 }
-@keyframes route-scan {
-  0% {
-    left: -35%;
-  }
-  100% {
-    left: 100%;
-  }
-}
-.route-scan {
-  animation: route-scan 1s ease-in-out infinite;
-}
 
 /* Live pulse line — sonsuz sola axın */
 @keyframes line-scroll {
@@ -373,8 +362,7 @@ body {
   .glow-breathe,
   .phase-fade,
   .pulse-line-track,
-  .skeleton,
-  .route-scan {
+  .skeleton {
     animation: none !important;
     transition: none !important;
   }

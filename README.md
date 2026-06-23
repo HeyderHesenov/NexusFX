@@ -1,7 +1,9 @@
 # NexusIQ — Financial Intelligence Platform
 
 > Bloomberg Terminal + AI Analyst + News Aggregator.
-> Maliyyə kəşfiyyat platforması. Lokal kurs final layihəsi.
+> Maliyyə kəşfiyyat platforması.
+>
+> **Final layihə — 1/3** (üç final layihədən birincisi).
 
 ## Nə edir
 - Maliyyə xəbərlərini toplayır (RSS / API / scraping), dedup edir.

@@ -1,11 +1,12 @@
-"""Power Law (Güc Qanunu) modeli — lider coinlər üçün uzunmüddətli ədalətli dəyər.
+"""Power Law (Güc Qanunu) modeli — BTC üçün uzunmüddətli ədalətli dəyər.
 
-log10(qiymət) = a + b·log10(t0-dan günlər). BTC üçün t0 = genesis (2009-01-03);
-digər coinlər üçün t0 = ilk ticarət günü. Əmsallar HARDCODE edilmir — hər aktiv
-öz tam tarixindən reqressiya ilə fit edilir (b ≈ 5-6, R² yüksək).
+log10(qiymət) = a + b·log10(genesis-dən günlər), t0 = genesis (2009-01-03).
+Əmsallar HARDCODE edilmir — BTC-nin tam tarixindən reqressiya ilə fit edilir
+(b ≈ 5-6, R² ≈ 0.92).
 
-QEYD: Power law yalnız uzunmüddətli eksponensial böyüyən şəbəkə aktivləri (kripto)
-üçün məntiqlidir. Forex (mean-reverting) və əmtəələr daxil EDİLMİR.
+QEYD: Power law praktikada yalnız BTC üçün etibarlı işləyir. Digər coinlərdə
+qanun tutmur, forex (mean-reverting) və əmtəələr isə tamamilə uyğun deyil —
+ona görə yalnız BTC saxlanılır.
 """
 from __future__ import annotations
 
@@ -16,15 +17,11 @@ from datetime import date, timedelta
 import numpy as np
 import yfinance as yf
 
-# key → (label, Yahoo simvolu). Yalnız lider coinlər.
+# key → (label, Yahoo simvolu). Power law yalnız BTC üçün etibarlı işləyir
+# (R² ~0.92, genesis 2009-dan eksponensial trend). Digər coinlərdə qanun
+# tutmur — ona görə yalnız BTC saxlanılır.
 ASSETS: dict[str, tuple[str, str]] = {
     "btc": ("BTC", "BTC-USD"),
-    "eth": ("ETH", "ETH-USD"),
-    "bnb": ("BNB", "BNB-USD"),
-    "xrp": ("XRP", "XRP-USD"),
-    "hype": ("HYPE", "HYPE32196-USD"),
-    "link": ("LINK", "LINK-USD"),
-    "trx": ("TRX", "TRX-USD"),
 }
 _BTC_GENESIS = date(2009, 1, 3)
 

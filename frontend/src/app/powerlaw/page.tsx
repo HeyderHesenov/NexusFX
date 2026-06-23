@@ -46,8 +46,8 @@ export default function PowerLawPage() {
           {label} · {t("pl.title")}
         </p>
 
-        {/* coin seçici */}
-        {assets.length > 0 && (
+        {/* coin seçici — yalnız birdən çox aktiv olduqda */}
+        {assets.length > 1 && (
           <div className="mt-3 flex flex-wrap gap-1.5">
             {assets.map((a) => (
               <button

@@ -4,6 +4,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app.api.v1.routes import (
+    analog,
     anomalies,
     assets,
     chat,
@@ -29,3 +30,4 @@ api_router.include_router(
     correlation.router, prefix="/correlation", tags=["analytics"]
 )
 api_router.include_router(radar.router, prefix="/radar", tags=["analytics"])
+api_router.include_router(analog.router, prefix="/analogs", tags=["analytics"])

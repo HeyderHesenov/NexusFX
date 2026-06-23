@@ -53,6 +53,7 @@ async def ingest_cycle() -> None:
 
     await _image_cycle()
     await _translate_cycle()
+    await _embed_cycle()
     await _anomaly_cycle()
 
 
@@ -80,6 +81,20 @@ async def _translate_cycle() -> None:
             logger.info("Pulsuz tərcümə — %s xəbər", stats["translated"])
     except Exception:  # noqa: BLE001
         logger.exception("Pulsuz tərcümə xətası")
+
+
+async def _embed_cycle() -> None:
+    """Embedding-siz yeni xəbərləri embed edir (Tarixi Analoq motoru üçün)."""
+    if not settings.embed_enabled:
+        return
+    from app.analytics.backfill_embeddings import embed_pending
+
+    try:
+        stats = await embed_pending()
+        if stats.get("embedded"):
+            logger.info("Xəbər embedding — %s xəbər", stats["embedded"])
+    except Exception:  # noqa: BLE001
+        logger.exception("Xəbər embedding xətası")
 
 
 async def _anomaly_cycle() -> None:

@@ -42,6 +42,11 @@ class Settings(BaseSettings):
     scheduler_ai_batch: int = 8
     # Pulsuz maşın tərcüməsi (Google free endpoint) — xəbərləri 4 dilə
     # SADİQ tərcümə edir (GPT kimi yenidən YAZMIR). Xərcsiz → default aktiv.
+    # Tarixi Analoq motoru — xəbər embedding-i (text-embedding-3-small, ucuz).
+    # OpenAI açarı lazımdır; söndürülsə motor boş nəticə qaytarır (UI sınmır).
+    embed_enabled: bool = True
+    embed_batch: int = 32
+
     free_translate_enabled: bool = True
     # Saatlıq backfill ölçüsü. Yeni ingestion ilə ayaqlaşmaq + backlog yığılmasın
     # deyə 30. Daha yüksək Google free endpoint-i rate-limit edib ingiliscə

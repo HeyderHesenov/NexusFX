@@ -32,6 +32,27 @@ export interface Forecast {
   pairs?: ForecastPair[];
 }
 
+/** Tarixi Analoq motoru — bənzər keçmiş hadisə + aktivin sonrakı hərəkəti. */
+export interface AnalogWindow {
+  avg: number | null;
+  hitRate: number | null;
+  count: number;
+}
+export interface AnalogEvent {
+  id: number;
+  title: string;
+  publishedAt: string;
+  similarity: number;
+  moves: Record<"1" | "5" | "30", number | null>;
+}
+export interface AnalogResult {
+  ready: boolean;
+  asset?: { key: string; label: string };
+  count?: number;
+  windows?: Record<"1" | "5" | "30", AnalogWindow>;
+  events?: AnalogEvent[];
+}
+
 export interface FearGreed {
   value: number;
   label: string;

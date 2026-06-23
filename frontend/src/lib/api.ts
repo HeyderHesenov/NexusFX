@@ -61,6 +61,43 @@ export async function getForecast(
   }
 }
 
+/** Bir xəbər üçün Tarixi Analoqlar (lazy — dil-müstəqil). */
+export async function getNewsAnalogs(
+  id: string,
+  k = 5,
+): Promise<import("@/types").AnalogResult> {
+  try {
+    return await apiGet(`/news/${id}/analogs?k=${k}`);
+  } catch {
+    return { ready: false };
+  }
+}
+
+/** Azad-mətn sorğusu üçün analoqlar (/analogs kəşf səhifəsi). */
+export async function searchAnalogs(
+  q: string,
+  category = "",
+  k = 5,
+): Promise<import("@/types").AnalogResult> {
+  const query = q.trim();
+  if (!query) return { ready: false };
+  try {
+    const qs = new URLSearchParams({ q: query, category, k: String(k) });
+    return await apiGet(`/analogs/search?${qs}`);
+  } catch {
+    return { ready: false };
+  }
+}
+
+const _analogPrefetched = new Set<string>();
+
+/** Hover/fokus zamanı analoqları öncədən isidir (kNN indeks + qiymət keşi). */
+export function prefetchNewsAnalogs(id: string): void {
+  if (_analogPrefetched.has(id)) return;
+  _analogPrefetched.add(id);
+  void getNewsAnalogs(id).catch(() => _analogPrefetched.delete(id));
+}
+
 const _forecastPrefetched = new Set<string>();
 
 /**

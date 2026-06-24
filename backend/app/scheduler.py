@@ -51,11 +51,24 @@ async def ingest_cycle() -> None:
             except Exception:  # noqa: BLE001
                 logger.exception("Planlı AI emal xətası")
 
-    # Qeyd: tərcümə artıq ingest_once daxilində (yeni xəbərlər saxlanan kimi)
-    # drenaj olunur — burada ayrıca dövrə lazım deyil.
+    # Yeni xəbərlər ingest_once daxilində drenaj olunur. Burada da çağırırıq ki,
+    # keçən dövrdə gtx uğursuzluğundan tərcüməsiz qalan elementlər retry olunsun
+    # (boşdursa ucuz — dərhal pending:0 qaytarır). Self-healing.
+    await _translate_cycle()
     await _image_cycle()
     await _embed_cycle()
     await _anomaly_cycle()
+
+
+async def _translate_cycle() -> None:
+    """Tərcüməsiz + keçmiş "İngiliscə kilidlənmiş" xəbərləri retry edir."""
+    from app.agents.translate_free import retranslate_stale, translate_all_pending
+
+    try:
+        await translate_all_pending()
+        await retranslate_stale()
+    except Exception:  # noqa: BLE001
+        logger.exception("Tərcümə dövrü xətası")
 
 
 async def _image_cycle() -> None:
@@ -72,15 +85,27 @@ async def _image_cycle() -> None:
 
 async def startup_catchup() -> None:
     """Başlanğıc tutması — restart-dan sonra interval gözləmədən tərcüməsiz
-    backlog-u dərhal təmizləyir (scheduler ilk dövrü 60 dəq sonra atır)."""
-    from app.agents.translate_free import translate_all_pending
+    backlog-u + keçmiş kilidlənmiş İngiliscəni + şəkilsizliyi dərhal təmizləyir
+    (scheduler ilk dövrü 60 dəq sonra atır)."""
+    from app.agents.translate_free import retranslate_stale, translate_all_pending
+    from app.ingestion.enrich_images import backfill as image_backfill
 
     try:
         stats = await translate_all_pending()
         if stats.get("translated"):
             logger.info("Başlanğıc tərcümə tutması — %s xəbər", stats["translated"])
+        stale = await retranslate_stale()
+        if stale.get("reset"):
+            logger.info("Başlanğıc kilid bərpası — %s xəbər", stale["reset"])
     except Exception:  # noqa: BLE001
         logger.exception("Başlanğıc tərcümə xətası")
+
+    try:
+        img = await image_backfill()
+        if img.get("found"):
+            logger.info("Başlanğıc şəkil tutması — %s xəbər", img["found"])
+    except Exception:  # noqa: BLE001
+        logger.exception("Başlanğıc şəkil xətası")
 
 
 async def _embed_cycle() -> None:

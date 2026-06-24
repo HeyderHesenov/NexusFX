@@ -36,8 +36,12 @@ async def ingest_once() -> dict[str, int]:
 
     if stats.get("added", 0) > 0:
         from app.agents.translate_free import translate_all_pending
+        from app.ingestion.enrich_images import backfill as image_backfill
 
         stats["translated"] = (await translate_all_pending()).get("translated", 0)
+        # Şəkilsiz yeni xəbərlərə naşirin og:image-ini doldur — manual ingest də
+        # thumbnail-li olsun (scheduler dövrünü gözləmədən).
+        stats["images"] = (await image_backfill()).get("found", 0)
     return stats
 
 

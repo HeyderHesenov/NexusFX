@@ -51,8 +51,9 @@ async def ingest_cycle() -> None:
             except Exception:  # noqa: BLE001
                 logger.exception("Planlı AI emal xətası")
 
+    # Qeyd: tərcümə artıq ingest_once daxilində (yeni xəbərlər saxlanan kimi)
+    # drenaj olunur — burada ayrıca dövrə lazım deyil.
     await _image_cycle()
-    await _translate_cycle()
     await _embed_cycle()
     await _anomaly_cycle()
 
@@ -69,18 +70,17 @@ async def _image_cycle() -> None:
         logger.exception("Şəkil backfill xətası")
 
 
-async def _translate_cycle() -> None:
-    """Tərcüməsiz xəbərləri PULSUZ 4 dilə tərcümə edir (GPT-dən asılı deyil)."""
-    if not settings.free_translate_enabled:
-        return
-    from app.agents.translate_free import translate_pending
+async def startup_catchup() -> None:
+    """Başlanğıc tutması — restart-dan sonra interval gözləmədən tərcüməsiz
+    backlog-u dərhal təmizləyir (scheduler ilk dövrü 60 dəq sonra atır)."""
+    from app.agents.translate_free import translate_all_pending
 
     try:
-        stats = await translate_pending()
+        stats = await translate_all_pending()
         if stats.get("translated"):
-            logger.info("Pulsuz tərcümə — %s xəbər", stats["translated"])
+            logger.info("Başlanğıc tərcümə tutması — %s xəbər", stats["translated"])
     except Exception:  # noqa: BLE001
-        logger.exception("Pulsuz tərcümə xətası")
+        logger.exception("Başlanğıc tərcümə xətası")
 
 
 async def _embed_cycle() -> None:

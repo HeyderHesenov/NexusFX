@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.v1.router import api_router
 from app.core.config import settings
-from app.scheduler import shutdown_scheduler, start_scheduler
+from app.scheduler import shutdown_scheduler, start_scheduler, startup_catchup
 
 logger = logging.getLogger("nexusiq.startup")
 
@@ -41,6 +41,7 @@ async def lifespan(app: FastAPI):
     # startup
     start_scheduler()
     asyncio.create_task(_prewarm())  # blok etmədən keşləri isidir
+    asyncio.create_task(startup_catchup())  # tərcüməsiz backlog-u dərhal tut
     yield
     # shutdown
     shutdown_scheduler()

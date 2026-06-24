@@ -17,7 +17,12 @@ from app.services.news_service import store_news
 
 
 async def ingest_once() -> dict[str, int]:
-    """Bir ingestion dövrü. Sayğac qaytarır + yeni xəbər olsa push göndərir."""
+    """Bir ingestion dövrü. Sayğac qaytarır + yeni xəbər olsa push göndərir.
+
+    Yeni xəbərlər saxlandıqdan SONRA dərhal 4 dilə tərcümə olunur (drenaj) ki,
+    heç bir xəbər UI-də tərcüməsiz (orijinal ingiliscə) görünməsin — bu, manual
+    və planlı ingestion-un hər ikisini əhatə edir.
+    """
     items = await collect_all()
     async with AsyncSessionLocal() as session:
         stats = await store_news(session, items)
@@ -28,7 +33,12 @@ async def ingest_once() -> dict[str, int]:
             payload = push_service.build_news_payload(latest or "", stats["added"])
             push_stats = await push_service.send_to_all(session, payload)
             stats["pushed"] = push_stats["sent"]
-        return stats
+
+    if stats.get("added", 0) > 0:
+        from app.agents.translate_free import translate_all_pending
+
+        stats["translated"] = (await translate_all_pending()).get("translated", 0)
+    return stats
 
 
 async def main() -> None:

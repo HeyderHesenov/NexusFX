@@ -110,6 +110,26 @@ async def translate_pending(limit: int | None = None) -> dict[str, int]:
     return {"pending": len(pending), "translated": translated}
 
 
+async def translate_all_pending(max_loops: int = 50) -> dict[str, int]:
+    """Bütün tərcüməsiz xəbərləri drenaj edir (batch-batch, hamısı bitənə qədər).
+
+    `translate_pending` tək batch (free_translate_batch) tutur; bu isə backlog
+    tamamilə bitənə qədər təkrarlayır. Beləcə bir ingestion dövründə nə qədər yeni
+    xəbər gəlsə də, hamısı dərhal tərcümə olunur — UI heç vaxt tərcüməsiz qalmır.
+    `max_loops` patoloji halda sonsuz dövrəni önləyən təhlükəsizlik həddidir.
+    """
+    if not settings.free_translate_enabled:
+        return {"translated": 0}
+    total = 0
+    for _ in range(max_loops):
+        stats = await translate_pending()
+        n = stats.get("translated", 0)
+        total += n
+        if n == 0:
+            break
+    return {"translated": total}
+
+
 async def main() -> None:
     limit = int(sys.argv[1]) if len(sys.argv) > 1 else settings.free_translate_batch
     print(f"⏳ {limit} xəbər pulsuz tərcümə olunur (Google free)…")

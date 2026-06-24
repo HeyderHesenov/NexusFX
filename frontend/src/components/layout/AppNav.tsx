@@ -57,6 +57,7 @@ const NAV: NavItem[] = [
       { href: "/powerlaw", labelKey: "pl.nav", icon: TrendingUp },
     ],
   },
+  { kind: "link", href: "/about", labelKey: "about.nav", icon: Info },
 ];
 
 const ALL_LEAVES: Leaf[] = [

@@ -126,6 +126,17 @@ export async function getTrending(
   }
 }
 
+/** Ən təsirli xəbərlər — bütün kateqoriyalar (analoq səhifəsi üçün). */
+export async function getTopImpact(
+  limit = 6,
+): Promise<import("@/types").NewsItem[]> {
+  try {
+    return await apiGet(`/news/trending?limit=${limit}`);
+  } catch {
+    return [];
+  }
+}
+
 /** Kateqoriya üzrə ümumi xəbər sayı — səhifələmə üçün. */
 export async function getNewsCount(category: string): Promise<number> {
   try {

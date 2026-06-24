@@ -1,16 +1,29 @@
 "use client";
 
-import { useState } from "react";
-import { History, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Binary, GitCompareArrows, History, LineChart, Search } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
 import { Footer } from "@/components/layout/Footer";
 import { AnalogPanel } from "@/components/news/HistoricalAnalogs";
-import { searchAnalogs } from "@/lib/api";
+import { NewsBadges } from "@/components/news/NewsBadges";
+import { getNewsAnalogs, getTopImpact, searchAnalogs } from "@/lib/api";
+import { localizedNews } from "@/lib/utils";
 import { useI18n } from "@/lib/i18n";
-import type { AnalogResult } from "@/types";
+import type { AnalogResult, NewsItem } from "@/types";
 
-// Nümunə ssenarilər — qısa, dil-müstəqil (embedding + alias-lar tutur).
-const EXAMPLES = ["Fed raises rates", "High CPI inflation", "BTC ETF inflows", "Oil supply cut"];
+// Nümunə ssenarilər — sorğu ingiliscə (embedding bazası), etiket lokallaşır.
+const EXAMPLES = [
+  { key: "analog.ex1", q: "Fed raises interest rates" },
+  { key: "analog.ex2", q: "High CPI inflation report" },
+  { key: "analog.ex3", q: "Bitcoin ETF inflows" },
+  { key: "analog.ex4", q: "OPEC oil supply cut" },
+] as const;
+
+const STEPS = [
+  { icon: Binary, t: "analog.how1t", d: "analog.how1d" },
+  { icon: GitCompareArrows, t: "analog.how2t", d: "analog.how2d" },
+  { icon: LineChart, t: "analog.how3t", d: "analog.how3d" },
+] as const;
 
 export default function AnalogsPage() {
   const { t, lang } = useI18n();
@@ -18,6 +31,11 @@ export default function AnalogsPage() {
   const [data, setData] = useState<AnalogResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [searched, setSearched] = useState(false);
+  const [recent, setRecent] = useState<NewsItem[]>([]);
+
+  useEffect(() => {
+    getTopImpact(6).then(setRecent);
+  }, []);
 
   async function run(query: string) {
     const text = query.trim();
@@ -26,8 +44,17 @@ export default function AnalogsPage() {
     setSearched(true);
     setLoading(true);
     setData(null);
-    const res = await searchAnalogs(text, lang);
-    setData(res);
+    setData(await searchAnalogs(text, lang));
+    setLoading(false);
+  }
+
+  // Real xəbər — saxlanmış embedding ilə daha dəqiq analoq.
+  async function runNews(n: NewsItem) {
+    setQ(localizedNews(n, lang).title);
+    setSearched(true);
+    setLoading(true);
+    setData(null);
+    setData(await getNewsAnalogs(n.id, lang));
     setLoading(false);
   }
 
@@ -71,19 +98,83 @@ export default function AnalogsPage() {
           </button>
         </form>
 
-        <div className="mt-3 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <span className="font-mono text-[11px] uppercase tracking-wider text-muted/70">
+            {t("analog.tryLabel")}
+          </span>
           {EXAMPLES.map((ex) => (
             <button
-              key={ex}
-              onClick={() => run(ex)}
+              key={ex.key}
+              onClick={() => run(ex.q)}
               className="rounded-full border border-border px-3 py-1 text-xs text-muted transition-colors hover:border-accent/40 hover:text-text"
             >
-              {ex}
+              {t(ex.key)}
             </button>
           ))}
         </div>
 
-        {searched && <AnalogPanel data={data} loading={loading} />}
+        {searched ? (
+          <AnalogPanel data={data} loading={loading} />
+        ) : (
+          <>
+            {/* Necə işləyir — 3 mərhələli boru xətti */}
+            <section className="mt-8">
+              <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.2em] text-accent">
+                {t("analog.howTitle")}
+              </h2>
+              <div className="grid gap-3 sm:grid-cols-3">
+                {STEPS.map((s, i) => {
+                  const Icon = s.icon;
+                  return (
+                    <div
+                      key={s.t}
+                      className="relative overflow-hidden rounded-xl border border-border bg-surface p-4"
+                    >
+                      <span className="absolute right-3 top-2 font-mono text-2xl font-bold tabular-nums text-text/[0.06]">
+                        {String(i + 1).padStart(2, "0")}
+                      </span>
+                      <Icon size={18} className="mb-2.5 text-accent" />
+                      <h3 className="text-sm font-semibold">{t(s.t)}</h3>
+                      <p className="mt-1 text-xs leading-relaxed text-muted">
+                        {t(s.d)}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </section>
+
+            {/* Son yüksək təsirli xəbərlər — bir kliklə analoq */}
+            {recent.length > 0 && (
+              <section className="mt-8">
+                <div className="mb-1 flex items-center gap-2">
+                  <History size={16} className="text-accent" />
+                  <h2 className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
+                    {t("analog.recent")}
+                  </h2>
+                </div>
+                <p className="mb-3 text-sm text-muted">{t("analog.recentHint")}</p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {recent.map((n) => (
+                    <button
+                      key={n.id}
+                      onClick={() => runNews(n)}
+                      className="group flex flex-col gap-2 rounded-xl border border-border bg-surface px-4 py-3 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-accent/50"
+                    >
+                      <NewsBadges sentiment={n.sentiment} impact={n.impactScore} />
+                      <p className="line-clamp-2 text-[13px] font-medium leading-snug text-text">
+                        {localizedNews(n, lang).title}
+                      </p>
+                      <span className="mt-auto truncate font-mono text-[11px] text-muted">
+                        {n.source ?? "—"}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
+        )}
       </main>
       <Footer />
     </div>

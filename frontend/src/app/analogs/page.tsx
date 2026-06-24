@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Binary, GitCompareArrows, History, LineChart, Search } from "lucide-react";
+import { CalendarClock, History, Percent, Search, TrendingUp } from "lucide-react";
 import { AppNav } from "@/components/layout/AppNav";
 import { Footer } from "@/components/layout/Footer";
 import { AnalogPanel } from "@/components/news/HistoricalAnalogs";
@@ -19,10 +19,11 @@ const EXAMPLES = [
   { key: "analog.ex4", q: "OPEC oil supply cut" },
 ] as const;
 
-const STEPS = [
-  { icon: Binary, t: "analog.how1t", d: "analog.how1d" },
-  { icon: GitCompareArrows, t: "analog.how2t", d: "analog.how2d" },
-  { icon: LineChart, t: "analog.how3t", d: "analog.how3d" },
+// Nəticəni necə oxumalı — istifadəçiyə yönəlik leqenda (mexanika yox).
+const LEGEND = [
+  { icon: TrendingUp, cls: "text-up", t: "analog.read1t", d: "analog.read1d" },
+  { icon: Percent, cls: "text-accent", t: "analog.read2t", d: "analog.read2d" },
+  { icon: CalendarClock, cls: "text-muted", t: "analog.read3t", d: "analog.read3d" },
 ] as const;
 
 export default function AnalogsPage() {
@@ -117,23 +118,20 @@ export default function AnalogsPage() {
           <AnalogPanel data={data} loading={loading} />
         ) : (
           <>
-            {/* Necə işləyir — 3 mərhələli boru xətti */}
+            {/* Nəticəni necə oxu — istifadəçiyə yönəlik leqenda */}
             <section className="mt-8">
               <h2 className="mb-3 font-mono text-xs uppercase tracking-[0.2em] text-accent">
-                {t("analog.howTitle")}
+                {t("analog.readTitle")}
               </h2>
               <div className="grid gap-3 sm:grid-cols-3">
-                {STEPS.map((s, i) => {
+                {LEGEND.map((s) => {
                   const Icon = s.icon;
                   return (
                     <div
                       key={s.t}
-                      className="relative overflow-hidden rounded-xl border border-border bg-surface p-4"
+                      className="rounded-xl border border-border bg-surface p-4"
                     >
-                      <span className="absolute right-3 top-2 font-mono text-2xl font-bold tabular-nums text-text/[0.06]">
-                        {String(i + 1).padStart(2, "0")}
-                      </span>
-                      <Icon size={18} className="mb-2.5 text-accent" />
+                      <Icon size={18} className={`mb-2.5 ${s.cls}`} />
                       <h3 className="text-sm font-semibold">{t(s.t)}</h3>
                       <p className="mt-1 text-xs leading-relaxed text-muted">
                         {t(s.d)}

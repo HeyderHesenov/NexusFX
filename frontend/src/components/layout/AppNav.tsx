@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   Activity,
   Bookmark,
@@ -21,6 +21,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import { useI18n } from "@/lib/i18n";
+import { prefetchAnomalies } from "@/lib/api";
 import { useClickOutside } from "@/lib/useClickOutside";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { NewsSearch } from "@/components/search/NewsSearch";
@@ -78,14 +79,31 @@ function logout() {
 const isActive = (pathname: string, href: string) =>
   href === "/" ? pathname === "/" : pathname.startsWith(href);
 
+const isDev = process.env.NODE_ENV !== "production";
+// Hover-də səhifə datasını qabaqcadan çəkənlər (skeleton-suz açılış).
+const DATA_PREWARM: Record<string, () => void> = {
+  "/anomalies": prefetchAnomalies,
+};
+const _warmed = new Set<string>();
+
 export function AppNav() {
   const { t } = useI18n();
   const pathname = usePathname();
+  const router = useRouter();
   const [openGroup, setOpenGroup] = useState<string | null>(null);
   const navRef = useRef<HTMLDivElement>(null);
   useClickOutside(navRef, () => setOpenGroup(null));
 
   useEffect(() => setOpenGroup(null), [pathname]);
+
+  // Hover/focus — route-u qabaqcadan qızdır: prod prefetch + dev kompilyasiya + data.
+  const warm = (href: string) => {
+    if (_warmed.has(href)) return;
+    _warmed.add(href);
+    router.prefetch(href);
+    if (isDev) fetch(href, { credentials: "same-origin" }).catch(() => {});
+    DATA_PREWARM[href]?.();
+  };
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-[var(--header-bg)] backdrop-blur">
@@ -104,6 +122,8 @@ export function AppNav() {
               <Link
                 key={item.href}
                 href={item.href}
+                onMouseEnter={() => warm(item.href)}
+                onFocus={() => warm(item.href)}
                 className={`relative flex items-center px-4 text-sm font-medium transition-colors ${
                   isActive(pathname, item.href)
                     ? "text-text"
@@ -121,6 +141,8 @@ export function AppNav() {
                   onClick={() =>
                     setOpenGroup((g) => (g === item.labelKey ? null : item.labelKey))
                   }
+                  onMouseEnter={() => item.items.forEach((l) => warm(l.href))}
+                  onFocus={() => item.items.forEach((l) => warm(l.href))}
                   className={`relative flex items-center gap-1.5 px-4 text-sm font-medium transition-colors ${
                     item.items.some((l) => isActive(pathname, l.href)) ||
                     openGroup === item.labelKey
@@ -148,6 +170,8 @@ export function AppNav() {
                         <Link
                           key={l.href}
                           href={l.href}
+                          onMouseEnter={() => warm(l.href)}
+                          onFocus={() => warm(l.href)}
                           className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors ${
                             active
                               ? "bg-accent-soft text-accent"
@@ -209,6 +233,8 @@ export function AppNav() {
             <Link
               key={l.href}
               href={l.href}
+              onMouseEnter={() => warm(l.href)}
+              onFocus={() => warm(l.href)}
               className={`flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors ${
                 active
                   ? "bg-accent-soft text-accent"

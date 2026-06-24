@@ -372,14 +372,39 @@ export async function getAssetsOverview(
 }
 
 /** Cari qiymət/həcm anomaliyaları (5 dəq keş; refresh məcburi yeniləyir). */
+// Anomaliya client-keşi — səhifə açılışı dərhal göstərsin (skeleton yanıb-sönməsin).
+let _anomCache: { ts: number; data: import("@/types").Anomaly[] } | null = null;
+let _anomInflight: Promise<import("@/types").Anomaly[]> | null = null;
+const _ANOM_TTL = 60_000;
+
 export async function getAnomalies(
   refresh = false,
 ): Promise<import("@/types").Anomaly[]> {
-  try {
-    return await apiGet(`/anomalies${refresh ? "?refresh=true" : ""}`);
-  } catch {
-    return [];
+  if (!refresh && _anomCache && Date.now() - _anomCache.ts < _ANOM_TTL) {
+    return _anomCache.data;
   }
+  if (!refresh && _anomInflight) return _anomInflight;
+  const run = (async () => {
+    try {
+      const d = await apiGet<import("@/types").Anomaly[]>(
+        `/anomalies${refresh ? "?refresh=true" : ""}`,
+      );
+      _anomCache = { ts: Date.now(), data: d };
+      return d;
+    } catch {
+      return _anomCache?.data ?? [];
+    } finally {
+      _anomInflight = null;
+    }
+  })();
+  if (!refresh) _anomInflight = run;
+  return run;
+}
+
+/** Naviqasiya hover-i — anomaliya datasını qabaqcadan çək. */
+export function prefetchAnomalies(): void {
+  if (_anomCache && Date.now() - _anomCache.ts < _ANOM_TTL) return;
+  void getAnomalies(false);
 }
 
 /** İzlənə bilən aktivlərin reyestri. */

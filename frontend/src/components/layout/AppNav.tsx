@@ -10,6 +10,7 @@ import {
   Coins,
   GitCompareArrows,
   History,
+  Info,
   LogOut,
   Newspaper,
   Radar,
@@ -69,6 +70,7 @@ const ALL_LEAVES: Leaf[] = [
   { href: "/compare", labelKey: "nav.compare", icon: GitCompareArrows },
   { href: "/correlation", labelKey: "corr.nav", icon: Spline },
   { href: "/powerlaw", labelKey: "pl.nav", icon: TrendingUp },
+  { href: "/about", labelKey: "about.nav", icon: Info },
 ];
 
 function logout() {

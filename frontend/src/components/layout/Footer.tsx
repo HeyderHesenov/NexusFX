@@ -31,6 +31,7 @@ const COLUMNS: Col[] = [
       { href: "/radar", labelKey: "nav.radar" },
       { href: "/alerts", labelKey: "nav.alerts" },
       { href: "/saved", labelKey: "bm.title" },
+      { href: "/about", labelKey: "about.nav" },
     ],
   },
 ];

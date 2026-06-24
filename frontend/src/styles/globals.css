@@ -23,28 +23,29 @@ html.dark {
   --header-bg: rgba(10, 10, 11, 0.8);
 }
 
-/* Açıq tema — soyuq-boz fon + ağ səth, dərinlikli kontrast. */
+/* Açıq tema — soyuq-slate: parıltısız off-white səth, yumşaldılmış dərin-slate
+   mətn (~14:1, sərt 17 yox). Dərinlik boz-slabdan yox, yumşaq kölgə+hairline-dan. */
 html.light {
-  --bg: #e9ebf1;
-  --surface: #ffffff;
-  --surface-hover: #f1f3f7;
-  --border: #d4d8e0;
+  --bg: #eef0f3;
+  --surface: #fbfcfd;
+  --surface-hover: #f1f3f6;
+  --border: #dde1e8;
   --accent: #e8650a;
   --accent-soft: rgba(232, 101, 10, 0.1);
-  --text: #14161b;
-  --muted: #585c66;
+  --text: #1c2330;
+  --muted: #5a6070;
   --up: #15a34a;
   --down: #dc2626;
-  --shadow: rgba(15, 23, 42, 0.1);
-  --bar-weak: #c3c7d0;
-  --header-bg: rgba(255, 255, 255, 0.85);
+  --shadow: rgba(30, 41, 59, 0.08);
+  --bar-weak: #cdd2db;
+  --header-bg: rgba(251, 252, 253, 0.85);
 }
 
-/* Light-da kartlar fona qarışmasın — yumşaq elevation ilə "otursun". */
+/* Light-da kartlar fona qarışmasın — surface/bg fərqi kiçik, dərinliyi kölgə daşıyır. */
 html.light .rounded-card {
   box-shadow:
-    0 1px 2px rgba(15, 23, 42, 0.04),
-    0 6px 16px -8px rgba(15, 23, 42, 0.08);
+    0 1px 2px rgba(15, 23, 42, 0.05),
+    0 8px 20px -10px rgba(15, 23, 42, 0.12);
 }
 
 * {
@@ -68,7 +69,7 @@ body {
   border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #3a3a3f;
+  background: var(--muted);
 }
 
 /* Mono rəqəmlər (market datası üçün) */

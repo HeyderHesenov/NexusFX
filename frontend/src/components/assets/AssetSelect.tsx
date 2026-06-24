@@ -2,12 +2,15 @@
 
 import { useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
-import type { Asset } from "@/types";
+import type { Asset, AssetType } from "@/types";
 import { useI18n } from "@/lib/i18n";
 import { useClickOutside } from "@/lib/useClickOutside";
 
-// Tam tip sırası — AssetPicker-dən fərqli olaraq HEÇ bir tip düşmür (stock/industrial daxil).
-const TYPE_ORDER = [
+type Filter = "all" | AssetType;
+
+// "Hamısı" + tam tip sırası — heç bir kateqoriya düşmür.
+const FILTERS: Filter[] = [
+  "all",
   "crypto",
   "stock",
   "index",
@@ -15,11 +18,12 @@ const TYPE_ORDER = [
   "metal",
   "commodity",
   "industrial",
-] as const;
+];
 
 /**
- * Tək-seçim aktiv combobox — trigger seçilmiş aktivi göstərir, klikdə axtarışlı +
- * kateqoriyalı üzən panel açılır. Siqnal (alert) formu üçün. Seçimdə bağlanır.
+ * Tək-seçim aktiv seçici — trigger seçilmiş aktivi göstərir. Açılan paneldə
+ * istifadəçi kateqoriya çipini özü seçir (məs. "Forex" → yalnız forex cütləri) +
+ * yanında axtarış. Siqnal (alert) formu üçün. Seçimdə bağlanır.
  */
 export function AssetSelect({
   assets,
@@ -32,32 +36,37 @@ export function AssetSelect({
 }) {
   const { t } = useI18n();
   const [q, setQ] = useState("");
+  const [filter, setFilter] = useState<Filter>("all");
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   useClickOutside(ref, () => setOpen(false));
 
   const selectedLabel = assets.find((a) => a.key === value)?.label ?? value;
 
+  // Yalnız registry-də həqiqətən mövcud olan tiplərin çipini göstər.
+  const present = useMemo(() => new Set(assets.map((a) => a.type)), [assets]);
+  const chips = FILTERS.filter((f) => f === "all" || present.has(f as AssetType));
+
   const query = q.trim().toLowerCase();
-  const groups = useMemo(() => {
-    const filtered = query
-      ? assets.filter(
-          (a) =>
+  const view = useMemo(
+    () =>
+      assets.filter(
+        (a) =>
+          (filter === "all" || a.type === filter) &&
+          (!query ||
             a.label.toLowerCase().includes(query) ||
-            a.key.toLowerCase().includes(query),
-        )
-      : assets;
-    const by: Record<string, Asset[]> = {};
-    for (const a of filtered) (by[a.type] ??= []).push(a);
-    // Tanınan tiplər sıra ilə, sonra qalan hər tip — heç bir aktiv itməsin.
-    const order = [
-      ...TYPE_ORDER,
-      ...Object.keys(by).filter((tp) => !TYPE_ORDER.includes(tp as never)),
-    ];
-    return order
-      .filter((tp) => by[tp]?.length)
-      .map((tp) => ({ type: tp, items: by[tp] }));
-  }, [assets, query]);
+            a.key.toLowerCase().includes(query)),
+      ),
+    [assets, filter, query],
+  );
+
+  function openPanel() {
+    // Kontekst: seçilmiş aktivin kateqoriyasında aç.
+    const selType = assets.find((a) => a.key === value)?.type;
+    setFilter(selType ?? "all");
+    setQ("");
+    setOpen(true);
+  }
 
   function pick(key: string) {
     onChange(key);
@@ -69,7 +78,7 @@ export function AssetSelect({
     <div ref={ref} className="relative">
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => (open ? setOpen(false) : openPanel())}
         aria-haspopup="listbox"
         aria-expanded={open}
         className="flex min-w-40 items-center justify-between gap-2 rounded-lg border border-border bg-bg px-3 py-2 text-sm transition-colors hover:border-accent/60 focus:border-accent focus:outline-none"
@@ -82,9 +91,26 @@ export function AssetSelect({
       </button>
 
       {open && (
-        <div className="absolute z-30 mt-2 max-h-72 w-60 overflow-y-auto rounded-xl border border-border bg-surface py-1 shadow-2xl fade-up">
-          <div className="sticky top-0 bg-surface px-1.5 pb-1.5 pt-1">
-            <div className="relative">
+        <div className="absolute z-30 mt-2 w-72 rounded-xl border border-border bg-surface shadow-2xl fade-up">
+          {/* kateqoriya çipləri + axtarış */}
+          <div className="border-b border-border p-2">
+            <div className="flex flex-wrap gap-1">
+              {chips.map((f) => (
+                <button
+                  key={f}
+                  type="button"
+                  onClick={() => setFilter(f)}
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                    filter === f
+                      ? "bg-accent text-black"
+                      : "text-muted hover:text-text"
+                  }`}
+                >
+                  {f === "all" ? t("sub.all") : t(`atype.${f}`)}
+                </button>
+              ))}
+            </div>
+            <div className="relative mt-2">
               <Search
                 size={15}
                 className="pointer-events-none absolute left-2.5 top-1/2 -translate-y-1/2 text-muted"
@@ -99,17 +125,14 @@ export function AssetSelect({
             </div>
           </div>
 
-          {groups.length === 0 && (
-            <p className="px-4 py-6 text-center text-sm text-muted">
-              {t("picker.none")}
-            </p>
-          )}
-          {groups.map((g) => (
-            <div key={g.type}>
-              <p className="px-4 pb-1 pt-2 font-mono text-[10px] uppercase tracking-wider text-muted/70">
-                {t(`atype.${g.type}`)}
+          {/* nəticə siyahısı */}
+          <div className="max-h-60 overflow-y-auto py-1">
+            {view.length === 0 ? (
+              <p className="px-4 py-6 text-center text-sm text-muted">
+                {t("picker.none")}
               </p>
-              {g.items.map((a) => {
+            ) : (
+              view.map((a) => {
                 const on = a.key === value;
                 return (
                   <button
@@ -124,9 +147,9 @@ export function AssetSelect({
                     {on && <Check size={15} className="shrink-0" />}
                   </button>
                 );
-              })}
-            </div>
-          ))}
+              })
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -8,7 +8,7 @@ Axın:
   3) Hər analoq hadisədən sonra aktivin +1/+5/+30 ticarət günü gəlirini hesabla.
   4) Pəncərə üzrə ortalama + müsbət nisbət (hit rate) ümumiləşdir.
 
-Data-əsaslıdır (GPT təxmini yox). Aktiv qiymət tarixçəsi yfinance "5y", keşli.
+Data-əsaslıdır (AI təxmini yox). Aktiv qiymət tarixçəsi yfinance "5y", keşli.
 """
 from __future__ import annotations
 

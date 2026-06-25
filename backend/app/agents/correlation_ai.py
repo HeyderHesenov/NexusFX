@@ -1,11 +1,11 @@
-"""CorrelationAgent — iki aktiv arası korrelyasiyanı izah edir (GPT + fallback).
+"""CorrelationAgent — iki aktiv arası korrelyasiyanı izah edir (AI + fallback).
 
 AI varsa qısa, neytral izah verir; yoxdursa dəyərə əsaslanan şablon mətn.
 (a|b|yuvarlaq dəyər|lang) üzrə keşlənir.
 """
 from __future__ import annotations
 
-from app.agents.llm import has_openai, openai_client
+from app.agents.llm import has_primary, primary_client
 from app.core.config import settings
 
 _LANG_NAMES = {"az": "Azerbaijani", "en": "English", "ru": "Russian", "tr": "Turkish"}
@@ -71,14 +71,14 @@ async def explain(label_a: str, label_b: str, value: float, lang: str = "az") ->
     if cache_key in _cache:
         return _cache[cache_key]
 
-    if not has_openai():
+    if not has_primary():
         text = _fallback(label_a, label_b, value, lang)
         _cache[cache_key] = text
         return text
 
     try:
-        resp = await openai_client().chat.completions.create(
-            model=settings.openai_model,
+        resp = await primary_client().chat.completions.create(
+            model=settings.llm_primary_model,
             temperature=0.4,
             max_tokens=220,
             messages=[

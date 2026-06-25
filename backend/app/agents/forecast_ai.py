@@ -1,6 +1,6 @@
-"""ForecastAgent — xəbərin bazar instrumentlərinə təsirini GPT ilə proqnozlaşdırır.
+"""ForecastAgent — xəbərin bazar instrumentlərinə təsirini AI ilə proqnozlaşdırır.
 
-Bir GPT çağırışı → tək dildə {summary, pairs:[{sym, impact, reason}]}.
+Bir AI çağırışı → tək dildə {summary, pairs:[{sym, impact, reason}]}.
 Forex xəbəri → forex cütləri; kripto → BTC/ETH və s.; ABŞ → indekslər + USD.
 On-demand çağırılır, News.forecast[lang] altında keşlənir.
 """
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 
-from openai import AsyncOpenAI
+from app.agents.llm import PrimaryClient
 
 from app.core.config import settings
 
@@ -56,15 +56,15 @@ async def forecast_impact(
     summary: str | None,
     category: str,
     lang: str,
-    client: AsyncOpenAI | None = None,
+    client: PrimaryClient | None = None,
 ) -> dict | None:
     """{summary, pairs:[{sym, impact, reason}]} qaytarır. Xəta → None."""
-    from app.agents.llm import openai_client
+    from app.agents.llm import primary_client
 
-    cli = client or openai_client()
+    cli = client or primary_client()
     try:
         resp = await cli.chat.completions.create(
-            model=settings.openai_model,
+            model=settings.llm_primary_model,
             messages=[
                 {"role": "system", "content": _SYSTEM},
                 {"role": "user", "content": _prompt(title, summary, category, lang)},

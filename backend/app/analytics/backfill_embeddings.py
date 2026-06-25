@@ -14,7 +14,7 @@ import sys
 
 from sqlalchemy import select
 
-from app.agents.llm import has_openai
+from app.agents.llm import has_primary
 from app.core.config import settings
 from app.db.session import AsyncSessionLocal, engine
 from app.models import News
@@ -28,7 +28,7 @@ def _text(title: str, summary: str | None) -> str:
 
 async def embed_pending(limit: int | None = None) -> dict[str, int]:
     """embedding IS NULL olan ən təzə xəbərləri embed edib yazır."""
-    if not settings.embed_enabled or not has_openai():
+    if not settings.embed_enabled or not has_primary():
         return {"pending": 0, "embedded": 0}
 
     limit = limit or settings.embed_batch

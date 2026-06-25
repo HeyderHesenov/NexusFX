@@ -6,7 +6,7 @@ from fastapi import APIRouter
 from fastapi import Query
 
 from app.agents.brief_ai import market_brief
-from app.agents.llm import has_openai
+from app.agents.llm import has_primary
 from app.analytics.calendar import get_calendar
 from app.analytics.crypto_calendar import get_crypto_calendar
 from app.analytics.earnings import get_earnings
@@ -92,7 +92,7 @@ async def brief_route(
 ) -> dict:
     """İstənilən təqvim elementi üçün AI analizi — nədir, ssenarilər, instrumentlər."""
     lang = lang if lang in _LANGS else "az"
-    if not has_openai():
+    if not has_primary():
         return {"ready": False}
     brief = await market_brief(kind, name, sym, meta, lang)
     if not brief:

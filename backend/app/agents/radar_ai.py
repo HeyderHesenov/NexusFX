@@ -1,6 +1,6 @@
-"""RadarAI — kəşf edilmiş aktivin niyə perspektivli olduğunu GPT ilə izah edir.
+"""RadarAI — kəşf edilmiş aktivin niyə perspektivli olduğunu AI ilə izah edir.
 
-On-demand (yalnız "AI izah" düyməsi) — API qənaəti. Tək GPT çağırışı → seçilmiş
+On-demand (yalnız "AI izah" düyməsi) — API qənaəti. Tək AI çağırışı → seçilmiş
 dildə qısa, neytral izah (MC, gəlir/tema, momentum əsasında).
 Nəticə (key, lang) üzrə yaddaşda keşlənir (1 saat).
 """
@@ -52,18 +52,18 @@ def _prompt(item: dict, lang: str) -> str:
 
 async def explain(item: dict, lang: str) -> str | None:
     """Kəşf item-i üçün qısa AI izahı (keşli). Xəta/açar yoxdursa None."""
-    from app.agents.llm import has_openai, openai_client
+    from app.agents.llm import has_primary, primary_client
 
     lang = lang if lang in _LANG_NAMES else "az"
     ck = (item.get("key", ""), lang)
     hit = _cache.get(ck)
     if hit and time.time() - hit[0] < _TTL:
         return hit[1]
-    if not has_openai():
+    if not has_primary():
         return None
     try:
-        resp = await openai_client().chat.completions.create(
-            model=settings.openai_model,
+        resp = await primary_client().chat.completions.create(
+            model=settings.llm_primary_model,
             messages=[
                 {"role": "system", "content": _SYSTEM},
                 {"role": "user", "content": _prompt(item, lang)},
@@ -123,10 +123,10 @@ def _about_prompt(item: dict, lang: str) -> str:
 async def about_stream(item: dict, lang: str):
     """Aktiv haqqında icmalı token-token axıdır (keşli 7 gün).
 
-    Keşdə varsa bir parçada dərhal qaytarır (ani). Yoxdursa GPT-dən axıdır və
+    Keşdə varsa bir parçada dərhal qaytarır (ani). Yoxdursa AI-dən axıdır və
     sonda tam mətni keşləyir. Axın → istifadəçi mətni dərhal görməyə başlayır.
     """
-    from app.agents.llm import has_openai, openai_client
+    from app.agents.llm import has_primary, primary_client
 
     lang = lang if lang in _LANG_NAMES else "az"
     ck = (item.get("key", ""), lang)
@@ -134,12 +134,12 @@ async def about_stream(item: dict, lang: str):
     if hit and time.time() - hit[0] < _ABOUT_TTL:
         yield hit[1]
         return
-    if not has_openai():
+    if not has_primary():
         return
     parts: list[str] = []
     try:
-        stream = await openai_client().chat.completions.create(
-            model=settings.openai_model,
+        stream = await primary_client().chat.completions.create(
+            model=settings.llm_primary_model,
             messages=[
                 {"role": "system", "content": _ABOUT_SYSTEM},
                 {"role": "user", "content": _about_prompt(item, lang)},

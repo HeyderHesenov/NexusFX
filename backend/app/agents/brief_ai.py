@@ -1,4 +1,4 @@
-"""BriefAgent — istənilən təqvim elementi üçün izahlı analiz (GPT).
+"""BriefAgent — istənilən təqvim elementi üçün izahlı analiz (AI).
 
 Vahid struktur, hər növ (event/earnings/unlock/cryptoEvent/asset) üçün uyğun
 prompt: {what, scenarios:[{label,dir,text}], pairsNote, pairs:[{sym,bias,reason}]}.
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 
-from openai import AsyncOpenAI
+from app.agents.llm import PrimaryClient
 
 from app.core.config import settings
 
@@ -91,19 +91,19 @@ async def market_brief(
     sym: str = "",
     meta: str = "",
     lang: str = "az",
-    client: AsyncOpenAI | None = None,
+    client: PrimaryClient | None = None,
 ) -> dict | None:
     """{what, scenarios, pairsNote, pairs} qaytarır. Keşlənir. Xəta → None."""
-    from app.agents.llm import openai_client
+    from app.agents.llm import primary_client
 
     key = f"{kind}|{name}|{sym}|{lang}"
     if key in _cache:
         return _cache[key]
 
-    cli = client or openai_client()
+    cli = client or primary_client()
     try:
         resp = await cli.chat.completions.create(
-            model=settings.openai_model,
+            model=settings.llm_primary_model,
             messages=[
                 {"role": "system", "content": _SYSTEM},
                 {"role": "user", "content": _prompt(kind, name, sym, meta, lang)},

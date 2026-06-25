@@ -17,7 +17,7 @@ kod artıq düzgün idi. Real təmizləmələr aşağıdadır.
 |-----|----------|
 | `api/v1/routes/` | health, news, market, chat, assets, push, anomalies, correlation, radar, analog |
 | `services/` | news_service (dedup+store), push_service (Web Push/VAPID) |
-| `agents/` | llm, advisor (GPT⇄Claude debate), news_ai, summarize_ai, translate_free, forecast_ai, brief_ai, radar_ai, correlation_ai, process_news |
+| `agents/` | llm, advisor (çoxmodelli debate), news_ai, summarize_ai, translate_free, forecast_ai, brief_ai, radar_ai, correlation_ai, process_news |
 | `analytics/` | swr (keş util), market, assets, anomaly(+news), correlation, analog, radar, discovery_*, calendar, crypto_calendar, majors_calendar, earnings, feargreed, powerlaw, scoring, backfill_* |
 | `ingestion/` | run, rss_collector, sources, enrich_content, enrich_images |
 | `rag/` | embed, store (numpy cosine), chunk, build |

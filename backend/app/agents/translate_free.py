@@ -1,7 +1,7 @@
 """Pulsuz maşın tərcüməsi — xəbərləri 4 dilə SADİQ tərcümə edir.
 
 Google-ın açarsız (gtx) tərcümə endpoint-i, httpx ilə. API xərci YOXDUR.
-GPT-dən fərqli olaraq mətni yenidən YAZMIR — orijinalı olduğu kimi tərcümə edir
+AI-dən fərqli olaraq mətni yenidən YAZMIR — orijinalı olduğu kimi tərcümə edir
 (istifadəçi tələbi: "xəbərin texti dəyişilməsin, sadəcə dilə uyğunlaşsın").
 
 İstifadə (backend/ qovluğundan):

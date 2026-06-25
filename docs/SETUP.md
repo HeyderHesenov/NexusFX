@@ -45,5 +45,5 @@ npm run dev
 Yoxla: http://localhost:3000
 
 ## Qeyd
-- AI açarları (OpenAI + Anthropic) yalnız Addım 4 və 7-də lazımdır.
+- AI açarları (LLM provayderi) yalnız Addım 4 və 7-də lazımdır.
 - O addımlara çatanda səndən açarları istəyəcəm.

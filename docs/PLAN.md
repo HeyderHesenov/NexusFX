@@ -25,7 +25,7 @@
 - Qeyd: X (Twitter) PULSUZ etibarlı deyil — atlanır. Pullu key olsa,
   sonradan "influencer feed" mənbəyi əlavə oluna bilər.
 
-## Addım 4 — AI pipeline  `[x]`  (GPT, 4 dil)
+## Addım 4 — AI pipeline  `[x]`  (AI, 4 dil)
 - Dil aşkarla (TranslationAgent).
 - Azərbaycancaya tərcümə.
 - Qısa xülasə (SummarizationAgent).
@@ -58,13 +58,13 @@
 - Platforma içində chat UI (sağ drawer). ✅
 - RAG: bazadan xəbər çək. ✅
 - Struktur cavab: qısa/orta/uzun müddət + risklər. ✅
-- GPT + Claude debate (FinancialAdvisorAgent). ✅
+- Çoxmodelli debate (FinancialAdvisorAgent). ✅
 - Finance-only guard + model gizliliyi. ✅
 - Axın effekti (token-token yazılma, /chat/stream NDJSON). ✅
 - İki aktiv soruşulanda inline korrelyasiya qrafiki + əlaqə izahı. ✅
 
 ## Addım 8 — Korrelyasiya + analitika  `[x]`
-- CorrelationAgent. ✅ (correlation_ai — GPT izah + fallback)
+- CorrelationAgent. ✅ (correlation_ai — AI izah + fallback)
 - Tarixi data (Yahoo Finance). ✅ (yfinance gündəlik gəlirlər)
 - Pearson korrelyasiya. ✅ (scipy + pandas, /correlation API)
 - Chart + UI-də göstər. ✅ (SVG heatmap + cüt xətt qrafiki, /correlation səhifəsi)
@@ -103,5 +103,5 @@ Opsional orkestrasiya: LangGraph.
 ## Texnologiya
 Frontend: Next.js 14 + TailwindCSS (dark).
 Backend: FastAPI + SQLAlchemy async + PostgreSQL.
-AI: OpenAI + Anthropic Claude.
+AI: çoxmodelli LLM (provayder-agnostik).
 Analitika: pandas, yfinance, scipy, plotly.

@@ -39,7 +39,7 @@ async def radar_about(key: str, lang: str = Query("az")) -> StreamingResponse:
     """Aktiv haqqında icmalı seçilmiş dildə token-token axıdır (keşli).
 
     Keşli `find_item` (CoinGecko fetch kritik yolda deyil) + axın → açılış sürətli:
-    istifadəçi ilk tokenləri ~1s-də görür, tam GPT cavabını gözləmir.
+    istifadəçi ilk tokenləri ~1s-də görür, tam AI cavabını gözləmir.
     """
     lang = lang if lang in _LANGS else "az"
     item, _ = await radar.find_item(key)

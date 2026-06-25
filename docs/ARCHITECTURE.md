@@ -31,7 +31,7 @@ Performans: ağır analitika SWR keş + startup prewarm ilə (endpoint-lər isti
 | TranslationAgent | Dil aşkarla → Azərbaycancaya tərcümə |
 | SummarizationAgent | Qısa xülasə yaradır |
 | CategorizationAgent | Forex / US / Crypto təyin edir |
-| FinancialAdvisorAgent | Chat — GPT + Claude debate |
+| FinancialAdvisorAgent | Chat — çoxmodelli mühakimə (debate) |
 | CorrelationAgent | Pair korrelyasiya + chart |
 
 ## AI Advisor — 2 AI debate axını
@@ -41,8 +41,8 @@ Performans: ağır analitika SWR keş + startup prewarm ilə (endpoint-lər isti
       ▼
 RAG: uyğun xəbərləri DB-dən çək
       │
-      ├──► GPT  → ilkin nəticə
-      └──► Claude → ilkin nəticə
+      ├──► Model A → ilkin nəticə
+      └──► Model B → ilkin nəticə
                  │
          fikirləri müqayisə et
                  │

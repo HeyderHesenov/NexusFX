@@ -1,4 +1,4 @@
-"""Router parse testi — GPT sorğusuz (sırf parse məntiqi).
+"""Router parse testi — model sorğusuz (sırf parse məntiqi).
 
 İşlət: backend/.venv/bin/python -m tests.test_rag_router
 """

@@ -26,7 +26,7 @@ async def pair(
     """İki aktiv: Pearson dəyəri + normallaşmış seriyalar (AI izahı YOX — sürətli).
 
     AI izahı ayrıca `/pair/explain` ilə yüklənir ki, qrafik dərhal gəlsin və
-    pəncərə dəyişəndə səhifə 3-4 saniyə OpenAI-ı gözləyib donmasın.
+    pəncərə dəyişəndə səhifə 3-4 saniyə AI-ı gözləyib donmasın.
     """
     result = await correlation.get_pair(a, b, window)
     if result is None:

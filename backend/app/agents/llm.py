@@ -1,29 +1,38 @@
-"""LLM klient fabrikləri — GPT (xəbər emalı) və Claude (advisor debate)."""
+"""LLM klient fabrikləri — provayder-agnostik (birincili / ikincili model).
+
+Bütün xarici LLM SDK-ları YALNIZ bu faylda izolyasiya olunur; tətbiqin qalan
+hissəsi yalnız `primary_client` / `secondary_client` və `PrimaryClient` /
+`SecondaryClient` tiplərini görür.
+"""
 from __future__ import annotations
 
 from functools import lru_cache
 
-from anthropic import AsyncAnthropic
-from openai import AsyncOpenAI
+from anthropic import AsyncAnthropic as _SecondarySDK
+from openai import AsyncOpenAI as _PrimarySDK
 
 from app.core.config import settings
 
-
-@lru_cache
-def openai_client() -> AsyncOpenAI:
-    """Tək AsyncOpenAI instansı (xəbər tərcümə/yenidən yazma)."""
-    return AsyncOpenAI(api_key=settings.openai_api_key)
+# Provayder-agnostik tip adları (tətbiqin qalan hissəsi bunları işlədir).
+PrimaryClient = _PrimarySDK
+SecondaryClient = _SecondarySDK
 
 
 @lru_cache
-def anthropic_client() -> AsyncAnthropic:
-    """Tək AsyncAnthropic instansı (advisor debate)."""
-    return AsyncAnthropic(api_key=settings.anthropic_api_key)
+def primary_client() -> PrimaryClient:
+    """Birincili model klienti (xəbər emalı, RAG, brief)."""
+    return _PrimarySDK(api_key=settings.llm_primary_key)
 
 
-def has_openai() -> bool:
-    return bool(settings.openai_api_key)
+@lru_cache
+def secondary_client() -> SecondaryClient:
+    """İkincili model klienti (advisor debate)."""
+    return _SecondarySDK(api_key=settings.llm_secondary_key)
 
 
-def has_anthropic() -> bool:
-    return bool(settings.anthropic_api_key)
+def has_primary() -> bool:
+    return bool(settings.llm_primary_key)
+
+
+def has_secondary() -> bool:
+    return bool(settings.llm_secondary_key)

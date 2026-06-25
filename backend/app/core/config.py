@@ -25,11 +25,11 @@ class Settings(BaseSettings):
         "postgresql+asyncpg://postgres:postgres@localhost:5432/nexusiq"
     )
 
-    # ---- AI ----
-    openai_api_key: str = ""
-    openai_model: str = "gpt-4o-mini"
-    anthropic_api_key: str = ""
-    anthropic_model: str = "claude-sonnet-4-6"
+    # ---- AI (provayder-agnostik — dəyərlər .env-dən) ----
+    llm_primary_key: str = ""
+    llm_primary_model: str = ""
+    llm_secondary_key: str = ""
+    llm_secondary_model: str = ""
 
     # ---- Ingestion ----
     ingest_interval_minutes: int = 60
@@ -37,13 +37,13 @@ class Settings(BaseSettings):
     # ---- Scheduler (Addım 10) ----
     scheduler_enabled: bool = True
     # Saatlıq ingestion + scoring + push PULSUZdur (RSS).
-    # AI tərcümə (GPT) XƏRC tələb edir — default söndürülü.
+    # AI tərcümə (AI) XƏRC tələb edir — default söndürülü.
     scheduler_ai_process: bool = False
     scheduler_ai_batch: int = 8
     # Pulsuz maşın tərcüməsi (Google free endpoint) — xəbərləri 4 dilə
-    # SADİQ tərcümə edir (GPT kimi yenidən YAZMIR). Xərcsiz → default aktiv.
+    # SADİQ tərcümə edir (AI kimi yenidən YAZMIR). Xərcsiz → default aktiv.
     # Tarixi Analoq motoru — xəbər embedding-i (text-embedding-3-small, ucuz).
-    # OpenAI açarı lazımdır; söndürülsə motor boş nəticə qaytarır (UI sınmır).
+    # AI açarı lazımdır; söndürülsə motor boş nəticə qaytarır (UI sınmır).
     embed_enabled: bool = True
     embed_batch: int = 32
 
@@ -53,10 +53,10 @@ class Settings(BaseSettings):
     # "zəhərlənmə"yə (xəta→orijinal mətn saxlanır) gətirə bilər.
     free_translate_batch: int = 30
 
-    # ---- AI xülasə (təsvirsiz xəbərlər üçün, GPT — XƏRC) ----
+    # ---- AI xülasə (təsvirsiz xəbərlər üçün, AI — XƏRC) ----
     # Bəzi mənbələr (məs. Yahoo) RSS-də təsvir vermir → kart boş görünür.
-    # Bu xəbərlər üçün GPT məqalə kontekstinə əsasən qısa, sadiq xülasə yazır.
-    # Halüsinasiyanı önləmək üçün əvvəl məqalə mətni çəkilir (pulsuz), sonra GPT.
+    # Bu xəbərlər üçün AI məqalə kontekstinə əsasən qısa, sadiq xülasə yazır.
+    # Halüsinasiyanı önləmək üçün əvvəl məqalə mətni çəkilir (pulsuz), sonra AI.
     ai_summary_enabled: bool = True
     ai_summary_batch: int = 8
     # Avtomatik dövr yalnız son N günün təsvirsiz xəbərlərini emal edir (xərc nəzarəti);

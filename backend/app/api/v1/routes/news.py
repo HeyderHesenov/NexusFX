@@ -10,7 +10,7 @@ from sqlalchemy.orm import selectinload
 from sqlalchemy.orm.attributes import flag_modified
 
 from app.agents.forecast_ai import forecast_impact
-from app.agents.llm import has_openai
+from app.agents.llm import has_primary
 from app.agents.news_ai import translate_full
 from app.core.constants import Category
 from app.db.session import get_db
@@ -20,7 +20,7 @@ from app.schemas.news import NewsOut, _excerpt
 _LANGS = {"az", "en", "ru", "tr"}
 
 # Eyni (xəbər, dil) üçün paralel proqnoz sorğularını birləşdirir —
-# prefetch (hover) + səhifə açılışı eyni GPT çağırışını paylaşır (təkrar xərc yox).
+# prefetch (hover) + səhifə açılışı eyni AI çağırışını paylaşır (təkrar xərc yox).
 _forecast_inflight: dict[tuple[int, str], "asyncio.Future[dict | None]"] = {}
 
 router = APIRouter()
@@ -146,7 +146,7 @@ async def get_translated_content(
     if cached:
         return {"ready": True, "text": cached}
 
-    if not has_openai():
+    if not has_primary():
         return {"ready": True, "text": source}  # fallback: orijinal
 
     translated = await translate_full(source, lang)
@@ -170,7 +170,7 @@ async def get_analogs(
 ) -> dict:
     """Tarixi Analoqlar — bənzər keçmiş hadisələr + aktivin sonrakı hərəkəti.
 
-    Başlıqlar seçilmiş dilə lokallaşır; rəqəmlər dil-müstəqil. GPT çağırışı yoxdur.
+    Başlıqlar seçilmiş dilə lokallaşır; rəqəmlər dil-müstəqil. AI çağırışı yoxdur.
     """
     from app.analytics import analog
 
@@ -187,7 +187,7 @@ async def get_forecast(
     lang: str = Query("az"),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    """AI bazar proqnozu — dil üzrə keşlənir, yoxdursa GPT ilə yaradılır."""
+    """AI bazar proqnozu — dil üzrə keşlənir, yoxdursa AI ilə yaradılır."""
     lang = lang if lang in _LANGS else "az"
     news = await db.get(News, news_id)
     if news is None:
@@ -197,7 +197,7 @@ async def get_forecast(
     if cached:
         return {"ready": True, **cached}
 
-    if not has_openai():
+    if not has_primary():
         return {"ready": False}
 
     # Eyni xəbər üçün artıq bir çağırış gedirsə (prefetch), onu gözlə.

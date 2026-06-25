@@ -5,7 +5,7 @@ APScheduler (AsyncIOScheduler) FastAPI ilə eyni event loop-da işləyir.
 Default dövr (PULSUZ):
   RSS çək → dedup → skorla → yeni xəbər olsa push göndər.
 
-AI tərcümə (GPT, XƏRCLİ) yalnız SCHEDULER_AI_PROCESS=true olduqda işləyir —
+AI tərcümə (AI, XƏRCLİ) yalnız SCHEDULER_AI_PROCESS=true olduqda işləyir —
 gözlənilməz API xərcinin qarşısını alır.
 """
 from __future__ import annotations

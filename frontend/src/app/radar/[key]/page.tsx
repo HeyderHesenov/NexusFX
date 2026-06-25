@@ -113,7 +113,7 @@ export default function RadarDetailPage() {
     });
     return () => {
       cancelled = true;
-      ctrl.abort(); // dil/coin dəyişəndə köhnə axını dayandır (GPT israfı yox)
+      ctrl.abort(); // dil/coin dəyişəndə köhnə axını dayandır (AI israfı yox)
     };
   }, [key, lang]);
 

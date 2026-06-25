@@ -1,6 +1,6 @@
-"""TranslationAgent + SummarizationAgent — GPT ilə xəbəri 4 dildə yenidən yazır.
+"""TranslationAgent + SummarizationAgent — AI ilə xəbəri 4 dildə yenidən yazır.
 
-Bir GPT çağırışı → 4 dil (az/en/ru/tr) üçün {title, body}.
+Bir AI çağırışı → 4 dil (az/en/ru/tr) üçün {title, body}.
 body = AI-nın öz sözləri ilə qısa xülasə (məntiqi saxlayır, mənbə cümlələrini
 dəyişə bilər). Birbaşa kopya YOX — müəllif hüququ + kontekst üçün.
 """
@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import json
 
-from openai import AsyncOpenAI
+from app.agents.llm import PrimaryClient
 
 from app.core.config import settings
 
@@ -57,15 +57,15 @@ _TRANSLATE_SYSTEM = (
 )
 
 
-async def translate_full(text: str, lang: str, client: AsyncOpenAI | None = None) -> str | None:
+async def translate_full(text: str, lang: str, client: PrimaryClient | None = None) -> str | None:
     """Mətni seçilmiş dilə sadiq tərcümə edir (xülasə YOX). Xəta → None."""
-    from app.agents.llm import openai_client
+    from app.agents.llm import primary_client
 
     lname = _LANG_NAMES.get(lang, "English")
-    cli = client or openai_client()
+    cli = client or primary_client()
     try:
         resp = await cli.chat.completions.create(
-            model=settings.openai_model,
+            model=settings.llm_primary_model,
             messages=[
                 {"role": "system", "content": _TRANSLATE_SYSTEM},
                 {"role": "user", "content": f"Target language: {lname}.\n\n{text}"},
@@ -80,15 +80,15 @@ async def translate_full(text: str, lang: str, client: AsyncOpenAI | None = None
 
 
 async def translate_and_rewrite(
-    title: str, summary: str | None, client: AsyncOpenAI | None = None
+    title: str, summary: str | None, client: PrimaryClient | None = None
 ) -> dict[str, dict[str, str]] | None:
-    """GPT-dən 4 dilli {lang: {title, body}} qaytarır. Xəta olarsa None."""
-    from app.agents.llm import openai_client
+    """AI-dən 4 dilli {lang: {title, body}} qaytarır. Xəta olarsa None."""
+    from app.agents.llm import primary_client
 
-    cli = client or openai_client()
+    cli = client or primary_client()
     try:
         resp = await cli.chat.completions.create(
-            model=settings.openai_model,
+            model=settings.llm_primary_model,
             messages=[
                 {"role": "system", "content": _SYSTEM},
                 {"role": "user", "content": _user_prompt(title, summary)},

@@ -10,7 +10,7 @@
 - 4 dilə tərcümə (AZ/EN/RU/TR) + xülasə + sentiment + impact bal (pulsuz heuristik).
 - Forex / US Markets / Crypto / Commodities kateqoriyalara ayırır.
 - Modern dark + light UI (Next.js + Tailwind), çoxdilli, peşəkar footer/nav.
-- AI Financial Advisor chat (GPT + Claude birgə), token-token axın + inline qrafiklər.
+- AI Financial Advisor chat (çoxmodelli mühakimə), token-token axın + inline qrafiklər.
 - Korrelyasiya matrisi + cüt qrafiki + AI izah (Yahoo Finance).
 - Anomaliya radarı (robust z-score, σ-gauge), web push bildirişləri.
 - Power Law modeli (BTC), bazar təqvimi, izləmə, siqnallar, müqayisə, asset səhifəsi.
@@ -23,7 +23,7 @@
 | Frontend | Next.js 14 (App Router), TypeScript, TailwindCSS |
 | Backend | Python FastAPI, SQLAlchemy 2.0 (async), Pydantic |
 | Verilənlər bazası | PostgreSQL 14 (lokal) |
-| AI | OpenAI API + Anthropic Claude API |
+| AI | Çoxmodelli LLM (provayder-agnostik) |
 | Analitika | pandas, yfinance, scipy, httpx |
 | Data mənbələri | Yahoo Finance, Binance, DefiLlama, CoinGecko |
 | Planlayıcı | APScheduler (saatlıq + hadisə əsaslı) |
@@ -41,7 +41,7 @@ RSS/API ─► NewsCollectorAgent ─► dedup/normalize ─► PostgreSQL
 Yahoo / Binance / DefiLlama / CoinGecko ─► Analytics ─► Frontend (Next.js)
    (qiymət, korrelyasiya, anomaliya,          │            │
     Power Law, Radar kəşf)                     │            ▼
-                                               └──► AI Advisor Chat (GPT + Claude)
+                                               └──► AI Advisor Chat (çoxmodelli)
                                                     + on-demand Radar/News izah
 ```
 Bütün ağır analitika SWR keş + startup prewarm ilə servis olunur (endpoint-lər isti ~1ms).
@@ -75,13 +75,13 @@ Bax: [`docs/SETUP.md`](docs/SETUP.md)
 - [x] Addım 4 — AI pipeline (tərcümə/xülasə/tag)
 - [x] Addım 5 — Frontend tablar + xəbər kartları
 - [x] Addım 6 — Tam xəbər səhifəsi
-- [x] Addım 7 — AI chat bot (GPT + Claude)
+- [x] Addım 7 — AI chat bot (çoxmodelli mühakimə)
 - [x] Addım 8 — Korrelyasiya modulu + chartlar
 - [x] Addım 9 — Bonus (sentiment, impact, bookmark)
 - [x] Addım 10 — Cron planlayıcı (APScheduler, saatlıq)
 
 ## Əlavə xüsusiyyətlər (v2 — Bonus Updates)
-- [x] Pulsuz tərcümə (Google gtx) — 4 dil, GPT xərci olmadan
+- [x] Pulsuz tərcümə (Google gtx) — 4 dil, AI xərci olmadan
 - [x] Web Push bildirişləri — Service Worker + VAPID + NotifyBell
 - [x] AI chat token-token axın (NDJSON) + inline korrelyasiya qrafikləri
 - [x] Anomaliya radarı — robust z-score (qiymət+həcm), σ-gauge UI

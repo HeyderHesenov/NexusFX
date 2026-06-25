@@ -1,10 +1,10 @@
 """FinancialAdvisorAgent — arxa fonda iki AI debate edib tək cavab verir.
 
 Axın:
-  1) Mövzu yoxlaması (GPT) — finance deyilsə nəzakətlə imtina (debate olmur).
+  1) Mövzu yoxlaması (AI) — finance deyilsə nəzakətlə imtina (debate olmur).
   2) RAG — NexusIQ bazasından uyğun xəbərlər kontekst kimi çəkilir.
-  3) Debate — GPT və Claude paralel müstəqil analiz verir.
-  4) Sintez — GPT iki analizi birləşdirib istifadəçi dilində yekun cavab verir.
+  3) Debate — iki model paralel müstəqil analiz verir.
+  4) Sintez — AI iki analizi birləşdirib istifadəçi dilində yekun cavab verir.
 
 Qaydalar (prompt-larda tətbiq olunur):
   - Yalnız maliyyə/bazar/iqtisadiyyat + NexusIQ xəbərləri.
@@ -19,10 +19,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import defer, selectinload
 
 from app.agents.llm import (
-    anthropic_client,
-    has_anthropic,
-    has_openai,
-    openai_client,
+    secondary_client,
+    has_secondary,
+    has_primary,
+    primary_client,
 )
 from app.analytics import correlation
 from app.core.config import settings
@@ -54,10 +54,10 @@ _GUARD = (
 
 
 async def _classify_finance(question: str) -> bool:
-    """GPT ilə sürətli mövzu yoxlaması. Finance deyilsə False."""
+    """AI ilə sürətli mövzu yoxlaması. Finance deyilsə False."""
     try:
-        resp = await openai_client().chat.completions.create(
-            model=settings.openai_model,
+        resp = await primary_client().chat.completions.create(
+            model=settings.llm_primary_model,
             messages=[
                 {
                     "role": "system",
@@ -135,9 +135,9 @@ async def _rag_context(session: AsyncSession, question: str, lang: str) -> str:
     return "\n".join(lines) if lines else "(no relevant NexusIQ news found)"
 
 
-async def _gpt_pass(question: str, context: str) -> str:
-    resp = await openai_client().chat.completions.create(
-        model=settings.openai_model,
+async def _primary_pass(question: str, context: str) -> str:
+    resp = await primary_client().chat.completions.create(
+        model=settings.llm_primary_model,
         messages=[
             {"role": "system", "content": _GUARD},
             {
@@ -153,11 +153,11 @@ async def _gpt_pass(question: str, context: str) -> str:
     return resp.choices[0].message.content or ""
 
 
-async def _claude_pass(question: str, context: str) -> str:
-    if not has_anthropic():
+async def _secondary_pass(question: str, context: str) -> str:
+    if not has_secondary():
         return ""
-    msg = await anthropic_client().messages.create(
-        model=settings.anthropic_model,
+    msg = await secondary_client().messages.create(
+        model=settings.llm_secondary_model,
         max_tokens=500,
         system=_GUARD,
         messages=[
@@ -201,8 +201,8 @@ def _synth_messages(
 
 
 async def _synthesize(question: str, lang: str, a: str, b: str, corr_note: str = "") -> str:
-    resp = await openai_client().chat.completions.create(
-        model=settings.openai_model,
+    resp = await primary_client().chat.completions.create(
+        model=settings.llm_primary_model,
         messages=_synth_messages(question, lang, a, b, corr_note),
         temperature=0.4,
         max_tokens=600,
@@ -250,10 +250,10 @@ def _parse_route(raw: str) -> str:
 
 
 async def _route(question: str) -> str:
-    """GPT ilə sualı təsnif edir: info | chart | discussion."""
+    """AI ilə sualı təsnif edir: info | chart | discussion."""
     try:
-        resp = await openai_client().chat.completions.create(
-            model=settings.openai_model,
+        resp = await primary_client().chat.completions.create(
+            model=settings.llm_primary_model,
             messages=[
                 {
                     "role": "system",
@@ -309,11 +309,11 @@ def _rag_answer_messages(question: str, lang: str, kb_context: str) -> list[dict
 
 
 async def answer(question: str, lang: str, session: AsyncSession) -> dict:
-    """Marşrut: info → tək-GPT RAG, chart/discussion → debate. {answer, refused}."""
+    """Marşrut: info → tək-model RAG, chart/discussion → debate. {answer, refused}."""
     import asyncio
 
     lang = lang if lang in LANG_NAMES else "az"
-    if not has_openai():
+    if not has_primary():
         return {"answer": _REFUSAL[lang], "refused": True}
     if not await _classify_finance(question):
         return {"answer": _REFUSAL[lang], "refused": True}
@@ -322,8 +322,8 @@ async def answer(question: str, lang: str, session: AsyncSession) -> dict:
     kb_ctx = _kb_context(kb)
 
     if path == "info":
-        resp = await openai_client().chat.completions.create(
-            model=settings.openai_model,
+        resp = await primary_client().chat.completions.create(
+            model=settings.llm_primary_model,
             messages=_rag_answer_messages(question, lang, kb_ctx),
             temperature=0.3,
             max_tokens=400,
@@ -337,10 +337,10 @@ async def answer(question: str, lang: str, session: AsyncSession) -> dict:
         _rag_context(session, question, lang), _detect_chart(question)
     )
     context = f"{news_ctx}\n\nKNOWLEDGE:\n{kb_ctx}"
-    gpt_take, claude_take = await asyncio.gather(
-        _gpt_pass(question, context), _claude_pass(question, context)
+    primary_take, secondary_take = await asyncio.gather(
+        _primary_pass(question, context), _secondary_pass(question, context)
     )
-    final = await _synthesize(question, lang, gpt_take, claude_take, corr_note)
+    final = await _synthesize(question, lang, primary_take, secondary_take, corr_note)
     return {"answer": final or _REFUSAL[lang], "refused": False}
 
 
@@ -348,14 +348,14 @@ async def answer_stream(question: str, lang: str, session: AsyncSession):
     """Axın variantı. NDJSON hadisələri verir:
     {type:chart,chart}, {type:delta,text}, {type:done,refused?}.
 
-    Router sualı təsnif edir: info → bilik bazasından tək-GPT cavab; chart/
+    Router sualı təsnif edir: info → bilik bazasından tək-model cavab; chart/
     discussion → arxa fonda debate (xəbər + bilik konteksti), sonra token axını.
     """
     import asyncio
 
     lang = lang if lang in LANG_NAMES else "az"
 
-    if not has_openai() or not await _classify_finance(question):
+    if not has_primary() or not await _classify_finance(question):
         yield {"type": "delta", "text": _REFUSAL[lang]}
         yield {"type": "done", "refused": True}
         return
@@ -363,10 +363,10 @@ async def answer_stream(question: str, lang: str, session: AsyncSession):
     path, kb = await asyncio.gather(_route(question), _kb_chunks(question))
     kb_ctx = _kb_context(kb)
 
-    # info → bilik bazasından birbaşa tək-GPT cavab (debate yoxdur).
+    # info → bilik bazasından birbaşa tək-model cavab (debate yoxdur).
     if path == "info":
-        stream = await openai_client().chat.completions.create(
-            model=settings.openai_model,
+        stream = await primary_client().chat.completions.create(
+            model=settings.llm_primary_model,
             messages=_rag_answer_messages(question, lang, kb_ctx),
             temperature=0.3,
             max_tokens=400,
@@ -391,13 +391,13 @@ async def answer_stream(question: str, lang: str, session: AsyncSession):
         yield {"type": "chart", "chart": chart}
 
     context = f"{news_ctx}\n\nKNOWLEDGE:\n{kb_ctx}"
-    gpt_take, claude_take = await asyncio.gather(
-        _gpt_pass(question, context), _claude_pass(question, context)
+    primary_take, secondary_take = await asyncio.gather(
+        _primary_pass(question, context), _secondary_pass(question, context)
     )
 
-    stream = await openai_client().chat.completions.create(
-        model=settings.openai_model,
-        messages=_synth_messages(question, lang, gpt_take, claude_take, corr_note),
+    stream = await primary_client().chat.completions.create(
+        model=settings.llm_primary_model,
+        messages=_synth_messages(question, lang, primary_take, secondary_take, corr_note),
         temperature=0.4,
         max_tokens=600,
         stream=True,

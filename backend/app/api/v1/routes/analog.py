@@ -3,7 +3,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Query
 
-from app.agents.llm import has_openai
+from app.agents.llm import has_primary
 from app.analytics import analog
 from app.rag import embed
 
@@ -21,7 +21,7 @@ async def search_analogs(
     lang: str = Query("az"),
 ) -> dict:
     """Azad mətni embed edib bənzər keçmiş hadisələri + nəticələrini qaytarır."""
-    if not has_openai():
+    if not has_primary():
         return {"ready": False}
     lang = lang if lang in _LANGS else "az"
     vec = await embed.embed_query(q)

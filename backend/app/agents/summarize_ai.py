@@ -1,9 +1,9 @@
-"""AI xülasə — təsvirsiz xəbərlərə qısa, sadiq xülasə yazır (GPT, XƏRC).
+"""AI xülasə — təsvirsiz xəbərlərə qısa, sadiq xülasə yazır (AI, XƏRC).
 
 Bəzi mənbələr (xüsusən Yahoo Finance) RSS-də `<description>` vermir → xəbər kartı
 təsvirsiz/boş görünür. Bu modul belə xəbərlər üçün:
   1. məqalə səhifəsindən mətn çəkir (og:description + meta + ilk paraqraflar) — PULSUZ;
-  2. GPT-yə YALNIZ bu kontekst + başlıq verir → 2-3 cümləlik sadiq xülasə (halüsinasiya
+  2. AI-yə YALNIZ bu kontekst + başlıq verir → 2-3 cümləlik sadiq xülasə (halüsinasiya
      riskini azaltmaq üçün uydurma rəqəm/fakt qadağan).
 Xülasə `summary`-yə yazılır, tərcümə markerləri sıfırlanır → mövcud pulsuz tərcümə
 (translate_free) onu 4 dilə çevirir.
@@ -89,12 +89,12 @@ _SYSTEM = (
 
 
 async def _summarize(title: str, context: str) -> str | None:
-    """GPT ilə sadiq qısa xülasə (mənbə dili = en). Xəta/boş → None."""
-    from app.agents.llm import openai_client
+    """AI ilə sadiq qısa xülasə (mənbə dili = en). Xəta/boş → None."""
+    from app.agents.llm import primary_client
 
     try:
-        resp = await openai_client().chat.completions.create(
-            model=settings.openai_model,
+        resp = await primary_client().chat.completions.create(
+            model=settings.llm_primary_model,
             messages=[
                 {"role": "system", "content": _SYSTEM},
                 {
@@ -116,7 +116,7 @@ async def summarize_pending(
     limit: int | None = None, max_age_days: int | None = None
 ) -> dict[str, int]:
     """Təsvirsiz xəbərlərə AI xülasə yazır. `max_age_days` verilsə yalnız son N gün."""
-    if not (settings.ai_summary_enabled and settings.openai_api_key):
+    if not (settings.ai_summary_enabled and settings.llm_primary_key):
         return {"pending": 0, "summarized": 0}
 
     limit = limit or settings.ai_summary_batch
@@ -166,7 +166,7 @@ async def summarize_pending(
 
 async def summarize_all_pending(max_loops: int = 80) -> dict[str, int]:
     """Avtomatik dövr: yalnız son `ai_summary_max_age_days` günü drenaj edir."""
-    if not (settings.ai_summary_enabled and settings.openai_api_key):
+    if not (settings.ai_summary_enabled and settings.llm_primary_key):
         return {"summarized": 0}
     total = 0
     for _ in range(max_loops):

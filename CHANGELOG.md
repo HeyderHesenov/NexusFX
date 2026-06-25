@@ -14,7 +14,7 @@ Bütün diqqətəlayiq dəyişikliklər. Tarixlər YYYY-MM-DD.
 - **İqtisadi təqvim mənbəyi → TradingView** (açıq endpoint, key-siz), bugündən
   ~1 ay irəli pəncərə + `actual` sahəsi; ForexFactory `thisweek` XML fallback
   kimi qalır.
-- **Təsvirsiz xəbərlərə AI xülasə** (GPT, məqalə-kontekstli, self-healing).
+- **Təsvirsiz xəbərlərə AI xülasə** (məqalə-kontekstli, self-healing).
 
 ### Düzəliş
 - İqtisadi təqvimdə keçmiş günlər filtrlənir — öndə bugün + gələcək hadisələr.

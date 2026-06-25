@@ -258,7 +258,7 @@ interface ChatStreamHandlers {
 
 /**
  * AI cavabını axınla alır (NDJSON): əvvəl qrafik (varsa), sonra token-token mətn.
- * ChatGPT/Claude tərzi yazılma effekti üçün.
+ * AI chat tərzi yazılma effekti üçün.
  */
 export async function streamChat(
   message: string,

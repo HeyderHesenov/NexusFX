@@ -1,12 +1,11 @@
 """Bazar lenti route-u — canlı qiymətlər."""
 from __future__ import annotations
 
-from fastapi import APIRouter
-
-from fastapi import Query
+from fastapi import APIRouter, Depends, Query
 
 from app.agents.brief_ai import market_brief
 from app.agents.llm import has_primary
+from app.core.ratelimit import rate_limit
 from app.analytics.calendar import get_calendar
 from app.analytics.crypto_calendar import get_crypto_calendar
 from app.analytics.earnings import get_earnings
@@ -82,7 +81,7 @@ async def commodities() -> list[dict]:
 _LANGS = {"az", "en", "ru", "tr"}
 
 
-@router.get("/brief")
+@router.get("/brief", dependencies=[Depends(rate_limit("brief", limit=30, window=60.0))])
 async def brief_route(
     kind: str = Query("event"),
     name: str = Query(..., min_length=1),

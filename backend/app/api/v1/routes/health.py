@@ -1,6 +1,8 @@
 """Sağlamlıq yoxlaması — sistem və DB statusu."""
 from __future__ import annotations
 
+import logging
+
 from fastapi import APIRouter, Depends
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -9,6 +11,7 @@ from app.core.config import settings
 from app.db.session import get_db
 
 router = APIRouter()
+logger = logging.getLogger("nexusiq.health")
 
 
 @router.get("/health")
@@ -23,5 +26,6 @@ async def health_db(db: AsyncSession = Depends(get_db)) -> dict:
     try:
         await db.execute(text("SELECT 1"))
         return {"status": "ok", "database": "connected"}
-    except Exception as exc:  # noqa: BLE001
-        return {"status": "error", "database": "unreachable", "detail": str(exc)}
+    except Exception:  # noqa: BLE001 — detalı sızdırma, server-side logla
+        logger.warning("DB sağlamlıq yoxlaması uğursuz", exc_info=True)
+        return {"status": "error", "database": "unreachable"}

@@ -1,8 +1,8 @@
 """Web Push route-ları — VAPID açarı, abunə, test bildirişi."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
-from pydantic import BaseModel, Field
+from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
@@ -21,6 +21,13 @@ class SubscribeRequest(BaseModel):
     endpoint: str = Field(..., min_length=10)
     keys: SubKeys
     lang: str = "az"
+
+    @field_validator("endpoint")
+    @classmethod
+    def _https_endpoint(cls, v: str) -> str:
+        if not v.startswith("https://"):
+            raise ValueError("endpoint https:// ilə başlamalıdır")
+        return v
 
 
 class EndpointRequest(BaseModel):
@@ -59,7 +66,9 @@ async def unsubscribe(
 
 @router.post("/test")
 async def test_push(db: AsyncSession = Depends(get_db)) -> dict:
-    """Bütün abunələrə test bildirişi göndərir (yoxlama üçün)."""
+    """Bütün abunələrə test bildirişi göndərir (yalnız development)."""
+    if settings.environment != "development":
+        raise HTTPException(status_code=404, detail="Not Found")
     payload = {
         "title": "NexusIQ ✅",
         "body": "Bildirişlər işləyir! Artıq yeni xəbərdən xəbərdar olacaqsan.",

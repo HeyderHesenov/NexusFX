@@ -9,9 +9,13 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.agents.advisor import answer, answer_stream
+from app.core.ratelimit import rate_limit
 from app.db.session import AsyncSessionLocal, get_db
 
 router = APIRouter()
+
+# bahalı LLM çağırışları — per-IP məhdudiyyət (cost/DoS qoruması)
+_chat_limit = rate_limit("chat", limit=30, window=60.0)
 
 
 class ChatRequest(BaseModel):
@@ -24,7 +28,7 @@ class ChatResponse(BaseModel):
     refused: bool = False
 
 
-@router.post("", response_model=ChatResponse)
+@router.post("", response_model=ChatResponse, dependencies=[Depends(_chat_limit)])
 async def chat(
     req: ChatRequest, db: AsyncSession = Depends(get_db)
 ) -> ChatResponse:
@@ -33,7 +37,7 @@ async def chat(
     return ChatResponse(**result)
 
 
-@router.post("/stream")
+@router.post("/stream", dependencies=[Depends(_chat_limit)])
 async def chat_stream(req: ChatRequest) -> StreamingResponse:
     """Axın cavabı (NDJSON) — qrafik + token-token yazılma effekti.
 

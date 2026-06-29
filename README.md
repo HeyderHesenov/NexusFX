@@ -68,6 +68,13 @@ NexusIQ/
 ## Quraşdırma
 Bax: [`docs/SETUP.md`](docs/SETUP.md)
 
+Tək əmrlə işə salma:
+```bash
+./scripts/dev.sh      # Postgres + backend (8001) + frontend (3000)
+./scripts/status.sh   # sağlamlıq yoxlaması
+./scripts/stop.sh     # dayandır
+```
+
 ## Status — addım-addım build ✅ (10/10 tamamlandı)
 - [x] Addım 1 — Layihə skeleti + struktur
 - [x] Addım 2 — DB sxema + modellər

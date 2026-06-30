@@ -48,7 +48,7 @@ async def _fetch(sem, client, row_id, url):
             return row_id, None
 
 
-async def backfill(limit: int = 200) -> dict[str, int]:
+async def backfill(limit: int = 1000) -> dict[str, int]:
     async with AsyncSessionLocal() as session:
         rows = (
             await session.scalars(

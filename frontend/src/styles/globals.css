@@ -85,9 +85,12 @@ body {
 }
 
 /* Phantom üfüqi scrollbar-ı qarşısını al. clip (≠ hidden) scroll-konteyner yaratmır,
-   ona görə position:sticky (AppNav, brief/news mini-header) sınmır. */
+   ona görə position:sticky (AppNav, brief/news mini-header) sınmır.
+   scrollbar-gutter:stable — şaquli scrollbar yerini həmişə rezerv et ki, qısa↔uzun
+   səhifə keçidində scrollbar açılıb-bağlanmasın (boz xət "gəlib-gedir" + 10px sürüşmə). */
 html {
   overflow-x: clip;
+  scrollbar-gutter: stable;
 }
 
 /* İncə scrollbar */

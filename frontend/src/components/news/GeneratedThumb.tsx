@@ -1,19 +1,23 @@
 "use client";
 
-import { Bitcoin, DollarSign, TrendingUp, Fuel } from "lucide-react";
+import { Bitcoin, DollarSign, TrendingUp, Fuel, Newspaper } from "lucide-react";
 import type { Category } from "@/types";
 
 /**
- * Brendli örtük şəkli — şəkli olmayan xəbərlər üçün. Heç bir qiymət xətti YOX;
- * təmiz qradiyent + solğun kateqoriya motivi + wordmark. Forma id-dən
- * deterministik çıxır (eyni xəbər → eyni örtük).
+ * Brendli redaksiya örtüyü — şəkli olmayan və ya yüklənməyən xəbərlər üçün.
+ * Çoxqatlı qradiyent + seed-dən deterministik market-chart motivi + kateqoriya
+ * qlifi + wordmark. Eyni xəbər → eyni örtük. Placeholder yox, real örtük hissi.
  */
-const CFG: Record<Category, { hue: number; Icon: typeof Bitcoin; label: string }> = {
+type Cfg = { hue: number; Icon: typeof Bitcoin; label: string };
+
+const CFG: Record<string, Cfg> = {
   forex: { hue: 205, Icon: DollarSign, label: "FOREX" },
   us: { hue: 150, Icon: TrendingUp, label: "US MARKETS" },
   crypto: { hue: 32, Icon: Bitcoin, label: "CRYPTO" },
   commodities: { hue: 95, Icon: Fuel, label: "COMMODITIES" },
 };
+// Naməlum/boş kateqoriyada crash etməsin (CFG[category] undefined olmasın).
+const DEFAULT_CFG: Cfg = { hue: 28, Icon: Newspaper, label: "MARKETS" };
 
 function hashStr(s: string): number {
   let h = 2166136261;
@@ -30,59 +34,85 @@ export function GeneratedThumb({
   className,
 }: {
   seed: string;
-  category: Category;
+  category: Category | string;
   className?: string;
 }) {
-  const cfg = CFG[category];
+  const cfg = CFG[category as string] ?? DEFAULT_CFG;
   const s = hashStr(seed);
   const hue = cfg.hue + ((s % 22) - 11);
-  const angle = 120 + (s % 60);
-  const color = `hsl(${hue} 80% 58%)`;
+  const angle = 115 + (s % 60);
+  const accent = `hsl(${hue} 82% 60%)`;
   const Icon = cfg.Icon;
+
+  // Seed-dən deterministik chart nöqtələri (redaksiya market motivi).
+  const N = 11;
+  const pts = Array.from({ length: N }, (_, i) => {
+    const v = hashStr(seed + "·" + i) % 1000;
+    const y = 70 - (v / 1000) * 52 + Math.sin((i / N) * Math.PI) * 6; // 18–70 arası dalğa
+    return [(i / (N - 1)) * 100, y] as const;
+  });
+  const line = pts.map((p, i) => `${i ? "L" : "M"}${p[0].toFixed(1)} ${p[1].toFixed(1)}`).join(" ");
+  const area = `${line} L100 100 L0 100 Z`;
+  const gid = `g${s.toString(36)}`;
 
   return (
     <div
       className={`relative overflow-hidden ${className ?? ""}`}
       style={{
-        background: `linear-gradient(${angle}deg, hsl(${hue} 42% 16%), hsl(${hue} 50% 9%) 70%, #0a0a0b)`,
+        background: `linear-gradient(${angle}deg, hsl(${hue} 44% 17%), hsl(${hue} 52% 10%) 62%, #0a0a0b)`,
       }}
       aria-hidden
     >
       {/* yumşaq işıq ləkəsi */}
       <div
-        className="absolute -right-10 -top-12 h-44 w-44 rounded-full blur-2xl"
-        style={{ background: color, opacity: 0.22 }}
+        className="absolute -right-12 -top-14 h-48 w-48 rounded-full blur-3xl"
+        style={{ background: accent, opacity: 0.2 }}
       />
 
       {/* solğun nöqtə toxuması */}
       <div
-        className="absolute inset-0 opacity-[0.14]"
+        className="absolute inset-0 opacity-[0.1]"
         style={{
-          backgroundImage:
-            "radial-gradient(rgba(255,255,255,.7) 1px, transparent 1px)",
-          backgroundSize: "16px 16px",
+          backgroundImage: "radial-gradient(rgba(255,255,255,.8) 1px, transparent 1px)",
+          backgroundSize: "18px 18px",
         }}
       />
 
-      {/* böyük solğun kateqoriya ikonu */}
+      {/* iri solğun kateqoriya qlifi (su nişanı) */}
       <Icon
-        size={120}
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-[0.16]"
-        style={{ color }}
+        size={104}
+        className="absolute -right-3 top-1/2 -translate-y-1/2 opacity-[0.12]"
+        style={{ color: accent }}
         strokeWidth={1.5}
       />
+
+      {/* redaksiya market motivi — seed-dən chart sahəsi */}
+      <svg
+        className="absolute inset-x-0 bottom-0 h-[62%] w-full"
+        viewBox="0 0 100 100"
+        preserveAspectRatio="none"
+      >
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={accent} stopOpacity="0.32" />
+            <stop offset="100%" stopColor={accent} stopOpacity="0" />
+          </linearGradient>
+        </defs>
+        <path d={area} fill={`url(#${gid})`} />
+        <path d={line} fill="none" stroke={accent} strokeWidth="1.4" strokeOpacity="0.7" vectorEffect="non-scaling-stroke" />
+      </svg>
 
       {/* kateqoriya etiketi */}
       <span
         className="absolute left-3.5 top-3 font-mono text-[10px] font-semibold tracking-[0.18em]"
-        style={{ color }}
+        style={{ color: accent }}
       >
         {cfg.label}
       </span>
 
       {/* wordmark */}
-      <span className="absolute bottom-2.5 left-3.5 font-mono text-[10px] font-semibold tracking-wider text-white/80">
-        Nexus<span style={{ color }}>IQ</span>
+      <span className="absolute bottom-2.5 left-3.5 font-mono text-[10px] font-semibold tracking-wider text-white/85">
+        Nexus<span style={{ color: accent }}>IQ</span>
       </span>
     </div>
   );

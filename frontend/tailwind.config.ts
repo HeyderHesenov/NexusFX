@@ -9,6 +9,11 @@ const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      // Geniş/ultra-geniş monitorlar üçün əlavə breakpoint-lər (defaultları əvəz etmir).
+      screens: {
+        "3xl": "1920px",
+        "4xl": "2560px",
+      },
       colors: {
         bg: "var(--bg)",
         surface: "var(--surface)",

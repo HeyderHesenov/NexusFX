@@ -24,7 +24,7 @@ export default function SavedPage() {
     <div className="flex min-h-screen flex-col">
       <AppNav />
 
-      <main className="mx-auto w-full max-w-7xl px-5 py-8 flex-1">
+      <main className="shell py-8 flex-1">
         <div className="mb-6 flex items-center gap-2">
           <Bookmark size={18} className="text-accent" />
           <h1 className="text-2xl font-semibold tracking-tight">{t("bm.title")}</h1>
@@ -48,7 +48,7 @@ export default function SavedPage() {
                     {t("bm.eventsTitle")}
                   </h2>
                 )}
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6">
                   {events.map((ev) => (
                     <SavedEventCard key={ev.id} event={ev} />
                   ))}
@@ -63,7 +63,7 @@ export default function SavedPage() {
                     {t("bm.newsTitle")}
                   </h2>
                 )}
-                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6">
                   {news.map((n) => (
                     <NewsCard key={n.id} news={n} />
                   ))}

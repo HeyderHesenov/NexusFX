@@ -57,7 +57,7 @@ function BriefView() {
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-30 border-b border-border bg-bg/80 backdrop-blur">
-        <div className="mx-auto flex h-16 max-w-3xl items-center justify-between px-5">
+        <div className="shell-narrow flex h-16 items-center justify-between">
           <Link
             href="/"
             className="flex items-center gap-2 text-sm text-muted transition-colors hover:text-text"
@@ -71,7 +71,7 @@ function BriefView() {
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-3xl px-5 py-8 flex-1">
+      <main className="shell-narrow py-8 flex-1">
         {/* meta */}
         <div className="flex flex-wrap items-center gap-3 text-xs">
           {badge && (

@@ -3,6 +3,23 @@
 @tailwind utilities;
 
 /* ============================================================
+   Səhifə konteyneri — eni TƏK BURADA idarə olunur (DRY).
+   .shell: geniş data/dashboard — ekranı doldurur (full-bleed +
+   responsive gutter), sıxlığı sütun sayı verir. Eni dəyişmək
+   istəsən yalnız bu iki class-ı redaktə et.
+   .shell-narrow: oxu/məqalə — ~75ch oxunaqlı en.
+   ============================================================ */
+@layer components {
+  .shell {
+    @apply mx-auto w-full px-5 sm:px-6 lg:px-8 2xl:px-12 3xl:px-16;
+  }
+  .shell-narrow {
+    @apply mx-auto w-full px-5;
+    max-width: 768px;
+  }
+}
+
+/* ============================================================
    Rəng tonları — Black / Orange / White
    Dəyişdirmək istəsən yalnız buradakı dəyərləri redaktə et.
    ============================================================ */

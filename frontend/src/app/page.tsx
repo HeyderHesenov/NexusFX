@@ -93,7 +93,7 @@ export default function HomePage() {
       <AppNav />
       <Ticker />
 
-      <main className="mx-auto w-full max-w-7xl px-5 py-8 flex-1">
+      <main className="shell py-8 flex-1">
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="font-mono text-xs uppercase tracking-[0.2em] text-accent">
@@ -218,7 +218,7 @@ function Pagination({
 
 function NewsGrid({ children }: { children: React.ReactNode }) {
   return (
-    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 3xl:grid-cols-5 4xl:grid-cols-6">
       {children}
     </div>
   );

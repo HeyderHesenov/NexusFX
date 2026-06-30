@@ -42,7 +42,7 @@ export function Footer() {
 
   return (
     <footer className="mt-auto border-t border-border bg-surface">
-      <div className="mx-auto max-w-7xl px-5 py-12">
+      <div className="shell py-12">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(3,1fr)]">
           {/* brend */}
           <div className="max-w-xs">

@@ -84,13 +84,18 @@ body {
   overscroll-behavior: none;
 }
 
-/* Phantom üfüqi scrollbar-ı qarşısını al. clip (≠ hidden) scroll-konteyner yaratmır,
-   ona görə position:sticky (AppNav, brief/news mini-header) sınmır.
-   scrollbar-gutter:stable — şaquli scrollbar yerini həmişə rezerv et ki, qısa↔uzun
-   səhifə keçidində scrollbar açılıb-bağlanmasın (boz xət "gəlib-gedir" + 10px sürüşmə). */
+/* scrollbar-gutter:stable — şaquli scrollbar yerini həmişə rezerv et ki, qısa↔uzun
+   səhifə keçidində scrollbar açılıb-bağlanmasın (boz xət "gəlib-gedir" + 10px sürüşmə).
+   DİQQƏT: overflow-x:clip ilə EYNİ elementdə olmamalıdır — clip elementi scroll-konteyner
+   OLMAYAN edir və scrollbar-gutter iqnor olunur. Ona görə overflow-x:clip body-yə köçdü. */
 html {
-  overflow-x: clip;
+  overflow-y: scroll;
   scrollbar-gutter: stable;
+}
+/* Phantom üfüqi scrollbar guard — body-də. clip (≠ hidden) scroll-konteyner yaratmır,
+   ona görə position:sticky (AppNav) sınmır; body overflow-y visible qalır → viewport scroll. */
+body {
+  overflow-x: clip;
 }
 
 /* İncə scrollbar */

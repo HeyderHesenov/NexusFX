@@ -84,23 +84,22 @@ body {
   overscroll-behavior: none;
 }
 
-/* Root scroller davranışı:
-   - overflow-y: scroll → şaquli scroll həmişə mümkün; html-i scroll-konteyner saxlayır (sticky OK).
-   - overflow-x: clip → üfüqi overflow heç vaxt scroll yaratmasın. */
+/* Üfüqi scroll guard (zərərsiz); şaquli scroll native. */
 html {
   overflow-x: clip;
-  overflow-y: scroll;
 }
 
-/* BÜTÜN scrollbar-lar tam gizli (Chrome overlay scrollbar daxil). Səbəb: Chrome overlay
-   scrollbar custom ::-webkit-scrollbar stilini və :horizontal pseudo-nu tam idarə etmir;
-   keçici üfüqi overflow-da sistem-mavi nazik zolaq (alt xət) göstərirdi. Hamısını gizlədirik →
-   heç bir rəngdə zolaq görünməz. Scroll wheel/trackpad/klaviatura ilə işləyir. */
-* {
-  scrollbar-width: none; /* Firefox + standart */
+/* İncə scrollbar (bərpa) */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
-*::-webkit-scrollbar {
-  display: none; /* Chrome/Safari (overlay daxil) */
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--muted);
 }
 
 /* Mətn seçimi — brendə uyğun (default açıq-mavi əvəzinə narıncı tint) */
